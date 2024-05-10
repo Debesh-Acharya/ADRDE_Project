@@ -7,9 +7,10 @@ const MyPlot = () => {
   const [plotData, setPlotData] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
   const [plotMode, setPlotMode] = useState('lines+markers');
+  const [plotColor, setPlotColor] = useState('red'); // New state for plot color
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
     Papa.parse(file, {
       download: true,
       header: true,
@@ -20,13 +21,13 @@ const MyPlot = () => {
         }
         setCsvData(results.data);
         if (results.data.length > 0) {
-          updatePlotData(results.data, plotType, plotMode);
+          updatePlotData(results.data, plotType, plotMode, plotColor); // Pass plot color
         }
       },
     });
   };
 
-  const updatePlotData = (data, type, mode) => {
+  const updatePlotData = (data, type, mode, color) => { // Accept plot color parameter
     console.log('CSV data:', data);
     
     // Get the first row to determine column names
@@ -46,7 +47,7 @@ const MyPlot = () => {
         y,
         type,
         mode,
-        marker: { color: 'red' },
+        marker: { color }, // Use selected color
       },
     ]);
   };
@@ -54,13 +55,19 @@ const MyPlot = () => {
   const handlePlotTypeChange = (event) => {
     const newPlotType = event.target.value;
     setPlotType(newPlotType);
-    updatePlotData(csvData, newPlotType, plotMode);
+    updatePlotData(csvData, newPlotType, plotMode, plotColor); // Pass plot color
   };
 
   const handlePlotModeChange = (event) => {
     const newPlotMode = event.target.value;
     setPlotMode(newPlotMode);
-    updatePlotData(csvData, plotType, newPlotMode);
+    updatePlotData(csvData, plotType, newPlotMode, plotColor); // Pass plot color
+  };
+
+  const handleColorChange = (event) => {
+    const newColor = event.target.value;
+    setPlotColor(newColor);
+    updatePlotData(csvData, plotType, plotMode, newColor); // Update plot with new color
   };
 
   return (
@@ -105,6 +112,23 @@ const MyPlot = () => {
           <option value="lines">Lines</option>
           <option value="markers">Markers</option>
           <option value="lines+markers">Lines + Markers</option>
+        </select>
+      </div>
+      <div className="mb-4 flex items-center">
+        <label htmlFor="plotColor" className="mr-2">
+          Plot Color:
+        </label>
+        <select
+          id="plotColor"
+          value={plotColor}
+          onChange={handleColorChange}
+          className="border border-gray-300 rounded-md p-2"
+        >
+          <option value="red">Red</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          {/* Add more color options as needed */}
         </select>
       </div>
       {plotData && (
