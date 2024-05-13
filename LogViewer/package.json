@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.6.8",
     "csv-parser": "^3.0.0",
+    "js-yaml": "^4.1.0",
     "papaparse": "^5.4.1",
     "plotly.js": "^2.32.0",
     "plotly.js-basic-dist": "^2.32.0",
@@ -21,7 +22,8 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-plotly.js": "^2.6.0",
-    "svg-path-parser": "^1.1.0"
+    "svg-path-parser": "^1.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
