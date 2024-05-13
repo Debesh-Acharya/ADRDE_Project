@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import Papa from 'papaparse';
 
@@ -7,7 +7,15 @@ const MyPlot = () => {
   const [plotData, setPlotData] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
   const [plotMode, setPlotMode] = useState('lines+markers');
-  const [plotColor, setPlotColor] = useState('red'); // New state for plot color
+  const [plotColor, setPlotColor] = useState('red'); 
+  const [layout, setLayout] = useState(null); 
+
+  useEffect(() => {
+    if (csvData) {
+      const layout = updatePlotData(csvData, plotType, plotMode, plotColor); 
+      setLayout(layout); 
+    }
+  }, [csvData, plotType, plotMode, plotColor]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -20,26 +28,27 @@ const MyPlot = () => {
           return;
         }
         setCsvData(results.data);
-        if (results.data.length > 0) {
-          updatePlotData(results.data, plotType, plotMode, plotColor); // Pass plot color
-        }
       },
     });
   };
 
-  const updatePlotData = (data, type, mode, color) => { // Accept plot color parameter
+  const updatePlotData = (data, type, mode, color) => { 
     console.log('CSV data:', data);
     
-    // Get the first row to determine column names
     const firstRow = data[0];
-    const xColumnName = Object.keys(firstRow)[0]; // Assuming the X data is in the first column
-    const yColumnName = Object.keys(firstRow)[1]; // Assuming the Y data is in the second column
+    const xColumnName = Object.keys(firstRow)[0]; 
+    const yColumnName = Object.keys(firstRow)[1]; 
     
     const x = data.map((row) => row[xColumnName]);
     const y = data.map((row) => row[yColumnName]);
     
     console.log('X data:', x);
     console.log('Y data:', y);
+
+    const layout = {
+      xaxis: { title: { text: xColumnName } },
+      yaxis: { title: { text: yColumnName } }
+    };
     
     setPlotData([
       {
@@ -47,27 +56,26 @@ const MyPlot = () => {
         y,
         type,
         mode,
-        marker: { color }, // Use selected color
+        marker: { color },
       },
     ]);
+
+    return layout; 
   };
 
   const handlePlotTypeChange = (event) => {
     const newPlotType = event.target.value;
     setPlotType(newPlotType);
-    updatePlotData(csvData, newPlotType, plotMode, plotColor); // Pass plot color
   };
 
   const handlePlotModeChange = (event) => {
     const newPlotMode = event.target.value;
     setPlotMode(newPlotMode);
-    updatePlotData(csvData, plotType, newPlotMode, plotColor); // Pass plot color
   };
 
   const handleColorChange = (event) => {
     const newColor = event.target.value;
     setPlotColor(newColor);
-    updatePlotData(csvData, plotType, plotMode, newColor); // Update plot with new color
   };
 
   return (
@@ -128,12 +136,11 @@ const MyPlot = () => {
           <option value="blue">Blue</option>
           <option value="green">Green</option>
           <option value="yellow">Yellow</option>
-          {/* Add more color options as needed */}
         </select>
       </div>
-      {plotData && (
+      {plotData && layout && ( 
         <div className="w-full max-w-screen-lg">
-          <Plot data={plotData} layout={{ width: '100%', height: 440, title: 'CSV Data Plot' }} />
+          <Plot data={plotData} layout={layout} width={'100%'} height={440} title={'CSV Data Plot'} />
         </div>
       )}
     </div>
