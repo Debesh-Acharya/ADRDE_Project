@@ -188,7 +188,8 @@ const MyPlot = () => {
                 type="color"
                 value={yColumnColors[column]}
                 onChange={(e) => handleColorChange(column, e)}
-                className="mr-2"
+                className="mr-2 p-1  size-3 r rounded-lg"
+                style={{ backgroundColor: yColumnColors[column] }}
               />
               <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
                 Remove
