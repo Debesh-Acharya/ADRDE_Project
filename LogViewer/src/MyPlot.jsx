@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParser';
+import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParserUtils';
+import { getRandomColor } from './utils/plottingUtils';
 
 const MyPlot = () => {
   const [csvData, setCsvData] = useState(null);
@@ -252,9 +253,4 @@ const MyPlot = () => {
   );
 };
 
-// Function to generate random color
-const getRandomColor = () => {
-  return '#' + Math.floor(Math.random() * 16777215).toString(16);
-};
-
-export default MyPlot;
+export default MyPlot
