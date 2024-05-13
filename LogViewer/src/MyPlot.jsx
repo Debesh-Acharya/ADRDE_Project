@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import Papa from 'papaparse';
-import jsyaml from 'js-yaml';
+import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParser'
 
 const MyPlot = () => {
   const [csvData, setCsvData] = useState(null);
@@ -35,73 +34,24 @@ const MyPlot = () => {
 
     switch (extension) {
       case 'csv':
-        parseCSV(file);
+        parseCSVUtil(file, handleParsedData);
         break;
       case 'xls':
       case 'xlsx':
         import('xlsx').then((XLSX) => {
-          parseXLS(file, XLSX);
+          parseXLSUtil(file, XLSX, handleParsedData);
         });
         break;
       case 'json':
-        parseJSON(file);
+        parseJSONUtil(file, handleParsedData);
         break;
       case 'yml':
       case 'yaml':
-        parseYAML(file);
+        parseYAMLUtil(file, handleParsedData);
         break;
       default:
         console.error('Unsupported file format');
     }
-  };
-
-  const parseCSV = (file) => {
-    Papa.parse(file, {
-      download: true,
-      header: true,
-      complete: handleParsedData,
-    });
-  };
-
-  const parseXLS = (file, XLSX) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const csvData = XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName]);
-      Papa.parse(csvData, {
-        header: true,
-        complete: handleParsedData,
-      });
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const parseJSON = (file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const jsonData = JSON.parse(e.target.result);
-      const csvData = Papa.unparse(jsonData);
-      Papa.parse(csvData, {
-        header: true,
-        complete: handleParsedData,
-      });
-    };
-    reader.readAsText(file);
-  };
-
-  const parseYAML = (file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const yamlData = jsyaml.load(e.target.result);
-      const csvData = Papa.unparse(yamlData);
-      Papa.parse(csvData, {
-        header: true,
-        complete: handleParsedData,
-      });
-    };
-    reader.readAsText(file);
   };
 
   const handleParsedData = (results) => {
