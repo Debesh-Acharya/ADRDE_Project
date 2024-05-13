@@ -5,7 +5,7 @@ import MyPlot from './MyPlot';
 const App = () => {
   return (
     <div>
-      <h1>CSV Data Plotter</h1>
+      <h1>Log Viewer</h1>
       <MyPlot />
     </div>
   );
