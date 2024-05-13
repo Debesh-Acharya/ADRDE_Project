@@ -11,6 +11,7 @@ const MyPlot = () => {
   const [selectedXColumn, setSelectedXColumn] = useState(null);
   const [selectedYColumns, setSelectedYColumns] = useState([]);
   const [yColumnColors, setYColumnColors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (csvData) {
@@ -135,6 +136,14 @@ const MyPlot = () => {
     setSelectedYColumns(newSelectedYColumns);
   };
 
+  const handleSubmit = () => {
+    setSubmitting(true);
+    // Update graph with new colors and parameters
+    const layout = updatePlotData(csvData, plotType, plotMode);
+    setLayout(layout);
+    setSubmitting(false);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="mb-4">
@@ -196,8 +205,11 @@ const MyPlot = () => {
               </button>
             </div>
           ))}
-          <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md">
+          <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md mr-2">
             Add Parameter
+          </button>
+          <button onClick={handleSubmit} disabled={submitting} className="bg-blue-500 text-white px-4 py-2 rounded-md">
+            {submitting ? 'Updating...' : 'Update'}
           </button>
         </div>
       )}
