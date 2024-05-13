@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParser'
+import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParser';
 
 const MyPlot = () => {
   const [csvData, setCsvData] = useState(null);
   const [plotData, setPlotData] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
   const [plotMode, setPlotMode] = useState('lines+markers');
-  const [plotColor, setPlotColor] = useState('red');
   const [layout, setLayout] = useState(null);
   const [selectedXColumn, setSelectedXColumn] = useState(null);
-  const [selectedYColumn, setSelectedYColumn] = useState(null);
+  const [selectedYColumns, setSelectedYColumns] = useState([]);
+  const [yColumnColors, setYColumnColors] = useState({});
 
   useEffect(() => {
     if (csvData) {
-      const layout = updatePlotData(csvData, plotType, plotMode, plotColor);
+      const layout = updatePlotData(csvData, plotType, plotMode);
       setLayout(layout);
     }
-  }, [csvData, plotType, plotMode, plotColor]);
+  }, [csvData, plotType, plotMode]);
 
   useEffect(() => {
-    if (selectedXColumn && selectedYColumn) {
+    if (selectedXColumn && selectedYColumns.length > 0) {
       if (csvData) {
-        const layout = updatePlotData(csvData, plotType, plotMode, plotColor);
+        const layout = updatePlotData(csvData, plotType, plotMode);
         setLayout(layout);
       }
     }
-  }, [selectedXColumn, selectedYColumn, csvData, plotType, plotMode, plotColor]);
+  }, [selectedXColumn, selectedYColumns, csvData, plotType, plotMode]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -62,27 +62,36 @@ const MyPlot = () => {
     setCsvData(results.data);
     // Set default selected columns
     setSelectedXColumn(Object.keys(results.data[0])[0]);
-    setSelectedYColumn(Object.keys(results.data[0])[1]);
+    setSelectedYColumns([Object.keys(results.data[0])[1]]);
+    // Set default color for each y column
+    const defaultColors = {};
+    Object.keys(results.data[0]).forEach((column, index) => {
+      if (index !== 0) {
+        defaultColors[column] = getRandomColor();
+      }
+    });
+    setYColumnColors(defaultColors);
   };
 
-  const updatePlotData = (data, type, mode, color) => {
+  const updatePlotData = (data, type, mode) => {
     const layout = {
       xaxis: { title: { text: selectedXColumn } },
-      yaxis: { title: { text: selectedYColumn } },
+      yaxis: { title: { text: 'Values' } },
     };
 
-    const x = data.map((row) => row[selectedXColumn]);
-    const y = data.map((row) => row[selectedYColumn]);
-
-    setPlotData([
-      {
-        x,
+    const plots = selectedYColumns.map((column) => {
+      const y = data.map((row) => row[column]);
+      return {
+        x: data.map((row) => row[selectedXColumn]),
         y,
         type,
         mode,
-        marker: { color },
-      },
-    ]);
+        marker: { color: yColumnColors[column] },
+        name: column,
+      };
+    });
+
+    setPlotData(plots);
 
     return layout;
   };
@@ -97,17 +106,33 @@ const MyPlot = () => {
     setPlotMode(newPlotMode);
   };
 
-  const handleColorChange = (event) => {
+  const handleColorChange = (column, event) => {
     const newColor = event.target.value;
-    setPlotColor(newColor);
+    setYColumnColors({ ...yColumnColors, [column]: newColor });
   };
 
   const handleXColumnChange = (event) => {
     setSelectedXColumn(event.target.value);
   };
 
-  const handleYColumnChange = (event) => {
-    setSelectedYColumn(event.target.value);
+  const handleYColumnChange = (index, event) => {
+    const newSelectedYColumns = [...selectedYColumns];
+    newSelectedYColumns[index] = event.target.value;
+    setSelectedYColumns(newSelectedYColumns);
+  };
+
+  const handleAddParameter = () => {
+    const columns = Object.keys(csvData[0]);
+    const remainingColumns = columns.filter(column => !selectedYColumns.includes(column) && column !== selectedXColumn);
+    if (remainingColumns.length > 0) {
+      setSelectedYColumns([...selectedYColumns, remainingColumns[0]]);
+    }
+  };
+
+  const handleRemoveParameter = (index) => {
+    const newSelectedYColumns = [...selectedYColumns];
+    newSelectedYColumns.splice(index, 1);
+    setSelectedYColumns(newSelectedYColumns);
   };
 
   return (
@@ -143,23 +168,36 @@ const MyPlot = () => {
           </select>
         </div>
       )}
-      {csvData && (
-        <div className="mb-4 flex items-center">
-          <label htmlFor="yColumn" className="mr-2">
-            Y Column:
-          </label>
-          <select
-            id="yColumn"
-            value={selectedYColumn}
-            onChange={handleYColumnChange}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          >
-            {Object.keys(csvData[0]).map((column) => (
-              <option key={column} value={column}>
-                {column}
-              </option>
-            ))}
-          </select>
+      {selectedXColumn && (
+        <div className="mb-4">
+          <label>Y Columns:</label>
+          {selectedYColumns.map((column, index) => (
+            <div key={index} className="flex items-center mb-2">
+              <select
+                value={column}
+                onChange={(e) => handleYColumnChange(index, e)}
+                className="border border-gray-300 rounded-md p-2 text-black mr-2"
+              >
+                {Object.keys(csvData[0]).map((yColumn) => (
+                  <option key={yColumn} value={yColumn}>
+                    {yColumn}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="color"
+                value={yColumnColors[column]}
+                onChange={(e) => handleColorChange(column, e)}
+                className="mr-2"
+              />
+              <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
+                Remove
+              </button>
+            </div>
+          ))}
+          <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md">
+            Add Parameter
+          </button>
         </div>
       )}
       <div className="mb-4 flex items-center">
@@ -192,22 +230,6 @@ const MyPlot = () => {
           <option value="lines+markers">Lines + Markers</option>
         </select>
       </div>
-      <div className="mb-4 flex items-center">
-        <label htmlFor="plotColor" className="mr-2">
-          Plot Color:
-        </label>
-        <select
-          id="plotColor"
-          value={plotColor}
-          onChange={handleColorChange}
-          className="border border-gray-300 rounded-md p-2 text-black"
-        >
-          <option value="red">Red</option>
-          <option value="blue">Blue</option>
-          <option value="green">Green</option>
-          <option value="yellow">Yellow</option>
-        </select>
-      </div>
       {plotData && layout && (
         <div className="w-full max-w-screen-lg">
           <Plot data={plotData} layout={layout} width={'100%'} height={440} title={'File Data Plot'} />
@@ -215,6 +237,11 @@ const MyPlot = () => {
       )}
     </div>
   );
+};
+
+// Function to generate random color
+const getRandomColor = () => {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16);
 };
 
 export default MyPlot;
