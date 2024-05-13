@@ -197,7 +197,7 @@ const MyPlot = () => {
                 type="color"
                 value={yColumnColors[column]}
                 onChange={(e) => handleColorChange(column, e)}
-                className="mr-2 p-1  size-3 r rounded-lg"
+                className="mr-2 p-1  size-3  rounded"
                 style={{ backgroundColor: yColumnColors[column] }}
               />
               <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
@@ -208,7 +208,7 @@ const MyPlot = () => {
           <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md mr-2">
             Add Parameter
           </button>
-          <button onClick={handleSubmit} disabled={submitting} className="bg-blue-500 text-white px-4 py-2 rounded-md">
+          <button onClick={handleSubmit} disabled={submitting} className="bg-blue-500 text-white px-2 py-1 rounded-md">
             {submitting ? 'Updating...' : 'Update'}
           </button>
         </div>
