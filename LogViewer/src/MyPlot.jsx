@@ -93,14 +93,14 @@ const MyPlot = () => {
         />
       </div>
       <div className="mb-4 flex items-center">
-        <label htmlFor="plotType" className="mr-2">
+        <label htmlFor="plotType" className="mr-2 ">
           Plot Type:
         </label>
         <select
           id="plotType"
           value={plotType}
           onChange={handlePlotTypeChange}
-          className="border border-gray-300 rounded-md p-2"
+          className="border border-gray-300 rounded-md p-2 text-black"
         >
           <option value="scatter">Scatter</option>
           <option value="bar">Bar</option>
@@ -115,7 +115,7 @@ const MyPlot = () => {
           id="plotMode"
           value={plotMode}
           onChange={handlePlotModeChange}
-          className="border border-gray-300 rounded-md p-2"
+          className="border border-gray-300 rounded-md p-2 text-black"
         >
           <option value="lines">Lines</option>
           <option value="markers">Markers</option>
@@ -130,7 +130,7 @@ const MyPlot = () => {
           id="plotColor"
           value={plotColor}
           onChange={handleColorChange}
-          className="border border-gray-300 rounded-md p-2"
+          className="border border-gray-300 rounded-md p-2 text-black"
         >
           <option value="red">Red</option>
           <option value="blue">Blue</option>
