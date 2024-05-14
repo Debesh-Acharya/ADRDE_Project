@@ -12,7 +12,7 @@ const MyPlot = () => {
   const [selectedXColumn, setSelectedXColumn] = useState(null);
   const [selectedYColumns, setSelectedYColumns] = useState([]);
   const [yColumnColors, setYColumnColors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [showUpdateButton, setShowUpdateButton] = useState(false);
 
   useEffect(() => {
     if (csvData) {
@@ -62,10 +62,8 @@ const MyPlot = () => {
       return;
     }
     setCsvData(results.data);
-    // Set default selected columns
     setSelectedXColumn(Object.keys(results.data[0])[0]);
     setSelectedYColumns([Object.keys(results.data[0])[1]]);
-    // Set default color for each y column
     const defaultColors = {};
     Object.keys(results.data[0]).forEach((column, index) => {
       if (index !== 0) {
@@ -94,33 +92,37 @@ const MyPlot = () => {
     });
 
     setPlotData(plots);
-
     return layout;
   };
 
   const handlePlotTypeChange = (event) => {
     const newPlotType = event.target.value;
     setPlotType(newPlotType);
+    setShowUpdateButton(true);
   };
 
   const handlePlotModeChange = (event) => {
     const newPlotMode = event.target.value;
     setPlotMode(newPlotMode);
+    setShowUpdateButton(true);
   };
 
   const handleColorChange = (column, event) => {
     const newColor = event.target.value;
     setYColumnColors({ ...yColumnColors, [column]: newColor });
+    setShowUpdateButton(true);
   };
 
   const handleXColumnChange = (event) => {
     setSelectedXColumn(event.target.value);
+    setShowUpdateButton(true);
   };
 
   const handleYColumnChange = (index, event) => {
     const newSelectedYColumns = [...selectedYColumns];
     newSelectedYColumns[index] = event.target.value;
     setSelectedYColumns(newSelectedYColumns);
+    setShowUpdateButton(true);
   };
 
   const handleAddParameter = () => {
@@ -128,6 +130,7 @@ const MyPlot = () => {
     const remainingColumns = columns.filter(column => !selectedYColumns.includes(column) && column !== selectedXColumn);
     if (remainingColumns.length > 0) {
       setSelectedYColumns([...selectedYColumns, remainingColumns[0]]);
+      setShowUpdateButton(true);
     }
   };
 
@@ -135,14 +138,13 @@ const MyPlot = () => {
     const newSelectedYColumns = [...selectedYColumns];
     newSelectedYColumns.splice(index, 1);
     setSelectedYColumns(newSelectedYColumns);
+    setShowUpdateButton(true);
   };
 
   const handleSubmit = () => {
-    setSubmitting(true);
-    // Update graph with new colors and parameters
     const layout = updatePlotData(csvData, plotType, plotMode);
     setLayout(layout);
-    setSubmitting(false);
+    setShowUpdateButton(false);
   };
 
   return (
@@ -198,24 +200,28 @@ const MyPlot = () => {
                 type="color"
                 value={yColumnColors[column]}
                 onChange={(e) => handleColorChange(column, e)}
-                className="mr-2 p-1  size-3  rounded"
+                className="mr-2 p-1 size-3 rounded-lg"
                 style={{ backgroundColor: yColumnColors[column] }}
               />
-              <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
-                Remove
-              </button>
+              {index > 0 && (
+                <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
+                  Remove
+                </button>
+              )}
             </div>
           ))}
           <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md mr-2">
             Add Parameter
           </button>
-          <button onClick={handleSubmit} disabled={submitting} className="bg-blue-500 text-white px-2 py-1 rounded-md">
-            {submitting ? 'Updating...' : 'Update'}
-          </button>
+          {showUpdateButton && (
+            <button onClick={handleSubmit} className="bg-blue-500 text-white px-2 py-1 rounded-md">
+              Update Plot
+            </button>
+          )}
         </div>
       )}
       <div className="mb-4 flex items-center">
-        <label htmlFor="plotType" className="mr-2 ">
+        <label htmlFor="plotType" className="mr-2">
           Plot Type:
         </label>
         <select
@@ -253,4 +259,4 @@ const MyPlot = () => {
   );
 };
 
-export default MyPlot
+export default MyPlot;
