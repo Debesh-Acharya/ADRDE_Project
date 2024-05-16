@@ -221,7 +221,7 @@ const MyPlot = () => {
         </div>
       )}
       <div className="mb-4 flex items-center">
-        <label htmlFor="plotType" className="mr-2">
+        <label htmlFor="plotType" className="mr-2 ">
           Plot Type:
         </label>
         <select
@@ -251,9 +251,11 @@ const MyPlot = () => {
         </select>
       </div>
       {plotData && layout && (
-        <div className="w-full max-w-screen-lg">
-          <Plot data={plotData} layout={layout} width={'100%'} height={440} title={'File Data Plot'} />
-        </div>
+        <div className="w-full max-w-screen-l" style={{ margin: 0, padding: 0 }}>
+        <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
+      </div>
+      
+      
       )}
     </div>
   );

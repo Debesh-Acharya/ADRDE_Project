@@ -1,15 +1,13 @@
-
 import React from 'react';
 import MyPlot from './MyPlot';
-import PlaneTrajectoryViewer from './PlaneTrajectoryViewer';
+import WorldSimulationViewer from './WorldSimulationViewer'; // Assuming the correct import path
 
 const App = () => {
   return (
     <div>
       <h1>Log Viewer</h1>
       <MyPlot />
-      <PlaneTrajectoryViewer/>
-
+      <WorldSimulationViewer />
     </div>
   );
 };
