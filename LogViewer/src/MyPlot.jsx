@@ -254,8 +254,6 @@ const MyPlot = () => {
         <div className="w-full max-w-screen-l" style={{ margin: 0, padding: 0 }}>
         <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
       </div>
-      
-      
       )}
     </div>
   );
