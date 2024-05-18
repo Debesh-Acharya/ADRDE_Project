@@ -4,6 +4,7 @@ import MyPlot from './MyPlot';
 
 const WorldSimulationViewer = ({ data }) => {
   const [viewer, setViewer] = useState(null);
+  
 
   useEffect(() => {
     // Dynamically load Cesium script
@@ -13,6 +14,8 @@ const WorldSimulationViewer = ({ data }) => {
     document.body.appendChild(script);
     script.onload = () => {
       // Initialize viewer once the script is loaded
+      Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxZTlhNGM0OC02MWVmLTQxNTAtOTUxMS00YjkwZTkyZDkxYzkiLCJpZCI6MjE1NjczLCJpYXQiOjE3MTU4NTk1MDJ9.i-EiyR6lQUyGilKu8v4Sk6n02yTZRHKwV5A4JYnFukw';
+
       if (!viewer) {
         const cesiumViewer = new Cesium.Viewer('cesiumContainer', {
           terrainProvider: Cesium.createWorldTerrain()
@@ -55,6 +58,8 @@ const WorldSimulationViewer = ({ data }) => {
     }
 
     async function loadModel() {
+      // Set Ion default access token
+
       const airplaneUri = await Cesium.IonResource.fromAssetId(2581825);
       const airplaneEntity = viewer.entities.add({
         availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
