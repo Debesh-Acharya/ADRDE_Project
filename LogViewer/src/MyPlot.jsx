@@ -3,7 +3,7 @@ import Plot from 'react-plotly.js';
 import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 
-const MyPlot = () => {
+const MyPlot = ({ onParsedData }) => {
   const [csvData, setCsvData] = useState(null);
   const [plotData, setPlotData] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
@@ -18,17 +18,9 @@ const MyPlot = () => {
     if (csvData) {
       const layout = updatePlotData(csvData, plotType, plotMode);
       setLayout(layout);
+      onParsedData(csvData);  // Notify parent with parsed data
     }
-  }, [csvData, plotType, plotMode]);
-
-  useEffect(() => {
-    if (selectedXColumn && selectedYColumns.length > 0) {
-      if (csvData) {
-        const layout = updatePlotData(csvData, plotType, plotMode);
-        setLayout(layout);
-      }
-    }
-  }, [selectedXColumn, selectedYColumns, csvData, plotType, plotMode]);
+  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -57,7 +49,7 @@ const MyPlot = () => {
   };
 
   const handleParsedData = (results) => {
-    if (results.errors.length > 0) {
+    if (results.errors && results.errors.length > 0) {
       console.error('File parsing error:', results.errors);
       return;
     }
@@ -96,20 +88,17 @@ const MyPlot = () => {
   };
 
   const handlePlotTypeChange = (event) => {
-    const newPlotType = event.target.value;
-    setPlotType(newPlotType);
+    setPlotType(event.target.value);
     setShowUpdateButton(true);
   };
 
   const handlePlotModeChange = (event) => {
-    const newPlotMode = event.target.value;
-    setPlotMode(newPlotMode);
+    setPlotMode(event.target.value);
     setShowUpdateButton(true);
   };
 
   const handleColorChange = (column, event) => {
-    const newColor = event.target.value;
-    setYColumnColors({ ...yColumnColors, [column]: newColor });
+    setYColumnColors({ ...yColumnColors, [column]: event.target.value });
     setShowUpdateButton(true);
   };
 
@@ -221,7 +210,7 @@ const MyPlot = () => {
         </div>
       )}
       <div className="mb-4 flex items-center">
-        <label htmlFor="plotType" className="mr-2 ">
+        <label htmlFor="plotType" className="mr-2">
           Plot Type:
         </label>
         <select
@@ -252,8 +241,8 @@ const MyPlot = () => {
       </div>
       {plotData && layout && (
         <div className="w-full max-w-screen-l" style={{ margin: 0, padding: 0 }}>
-        <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
-      </div>
+          <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
+        </div>
       )}
     </div>
   );
