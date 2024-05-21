@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import MyPlot from './MyPlot';
-import WorldSimulationViewer from './WorldSimulationViewer'; // Ensure this path is correct
+// import WorldSimulationViewer from './WorldSimulationViewer'; // Ensure this path is correct
 
 const App = () => {
   const [flightData, setFlightData] = useState(null);
@@ -13,7 +13,7 @@ const App = () => {
     <div>
       <h1>Log Viewer</h1>
       <MyPlot onParsedData={handleParsedData} />
-      {flightData && <WorldSimulationViewer data={flightData} />}
+      {/* {flightData && <WorldSimulationViewer data={flightData} />} */}
     </div>
   );
 };
