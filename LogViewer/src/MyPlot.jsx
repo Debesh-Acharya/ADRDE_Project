@@ -8,19 +8,21 @@ const MyPlot = ({ onParsedData }) => {
   const [plotData, setPlotData] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
   const [plotMode, setPlotMode] = useState('lines+markers');
+  const [is3D, setIs3D] = useState(false);
   const [layout, setLayout] = useState(null);
   const [selectedXColumn, setSelectedXColumn] = useState(null);
   const [selectedYColumns, setSelectedYColumns] = useState([]);
+  const [selectedZColumn, setSelectedZColumn] = useState(null);
   const [yColumnColors, setYColumnColors] = useState({});
   const [showUpdateButton, setShowUpdateButton] = useState(false);
 
   useEffect(() => {
     if (csvData) {
-      const layout = updatePlotData(csvData, plotType, plotMode);
+      const layout = updatePlotData(csvData, plotType, plotMode, is3D);
       setLayout(layout);
       onParsedData(csvData);  // Notify parent with parsed data
     }
-  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns]);
+  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns, selectedZColumn, is3D]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -54,38 +56,46 @@ const MyPlot = ({ onParsedData }) => {
       return;
     }
     setCsvData(results.data);
-    setSelectedXColumn(Object.keys(results.data[0])[0]);
-    setSelectedYColumns([Object.keys(results.data[0])[1]]);
+    const columns = Object.keys(results.data[0]);
+    setSelectedXColumn(columns[0]);
+    setSelectedYColumns([columns[1]]);
+    setSelectedZColumn(columns.length > 2 ? columns[2] : null);
     const defaultColors = {};
-    Object.keys(results.data[0]).forEach((column, index) => {
-      if (index !== 0) {
+    columns.forEach((column, index) => {
+      if (index > 0) {
         defaultColors[column] = getRandomColor();
       }
     });
     setYColumnColors(defaultColors);
   };
 
-  const updatePlotData = (data, type, mode) => {
+  const updatePlotData = (data, type, mode, is3D) => {
     const layout = {
       xaxis: { title: { text: selectedXColumn } },
       yaxis: { title: { text: 'Values' } },
     };
-
-    const plots = selectedYColumns.map((column) => {
-      const y = data.map((row) => row[column]);
-      return {
-        x: data.map((row) => row[selectedXColumn]),
-        y,
-        type,
-        mode,
-        marker: { color: yColumnColors[column] },
-        name: column,
-      };
-    });
-
+  
+    const plots = is3D ? [{
+      x: data.map((row) => row[selectedXColumn]),
+      y: data.map((row) => row[selectedYColumns[0]]),
+      z: data.map((row) => row[selectedZColumn]),
+      type: type === 'scatter' ? 'scatter3d' : type,
+      mode: 'markers',
+      marker: { color: yColumnColors[selectedYColumns[0]] },
+      name: `${selectedYColumns[0]} vs ${selectedXColumn} vs ${selectedZColumn}`,
+    }] : selectedYColumns.map(yColumn => ({
+      x: data.map((row) => row[selectedXColumn]),
+      y: data.map((row) => row[yColumn]),
+      type,
+      mode,
+      marker: { color: yColumnColors[yColumn] },
+      name: `${yColumn} vs ${selectedXColumn}`,
+    }));
+  
     setPlotData(plots);
     return layout;
   };
+  
 
   const handlePlotTypeChange = (event) => {
     setPlotType(event.target.value);
@@ -97,13 +107,29 @@ const MyPlot = ({ onParsedData }) => {
     setShowUpdateButton(true);
   };
 
-  const handleColorChange = (column, event) => {
-    setYColumnColors({ ...yColumnColors, [column]: event.target.value });
+  const handlePlotDimensionChange = (event) => {
+    setIs3D(event.target.value === '3D');
+    setShowUpdateButton(true);
+  };
+
+  const handleColorChange = (yColumn, event) => {
+    setYColumnColors({ ...yColumnColors, [yColumn]: event.target.value });
     setShowUpdateButton(true);
   };
 
   const handleXColumnChange = (event) => {
     setSelectedXColumn(event.target.value);
+    setShowUpdateButton(true);
+  };
+
+  const handleAddYColumn = () => {
+    setSelectedYColumns([...selectedYColumns, '']);
+  };
+
+  const handleRemoveYColumn = (index) => {
+    const newSelectedYColumns = [...selectedYColumns];
+    newSelectedYColumns.splice(index, 1);
+    setSelectedYColumns(newSelectedYColumns);
     setShowUpdateButton(true);
   };
 
@@ -114,30 +140,19 @@ const MyPlot = ({ onParsedData }) => {
     setShowUpdateButton(true);
   };
 
-  const handleAddParameter = () => {
-    const columns = Object.keys(csvData[0]);
-    const remainingColumns = columns.filter(column => !selectedYColumns.includes(column) && column !== selectedXColumn);
-    if (remainingColumns.length > 0) {
-      setSelectedYColumns([...selectedYColumns, remainingColumns[0]]);
-      setShowUpdateButton(true);
-    }
-  };
-
-  const handleRemoveParameter = (index) => {
-    const newSelectedYColumns = [...selectedYColumns];
-    newSelectedYColumns.splice(index, 1);
-    setSelectedYColumns(newSelectedYColumns);
+  const handleZColumnChange = (event) => {
+    setSelectedZColumn(event.target.value);
     setShowUpdateButton(true);
   };
 
   const handleSubmit = () => {
-    const layout = updatePlotData(csvData, plotType, plotMode);
+    const layout = updatePlotData(csvData, plotType, plotMode, is3D);
     setLayout(layout);
     setShowUpdateButton(false);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center w-full h-full">
       <div className="mb-4">
         <label htmlFor="fileUpload" className="mr-2">
           Upload File:
@@ -169,46 +184,87 @@ const MyPlot = ({ onParsedData }) => {
           </select>
         </div>
       )}
-      {selectedXColumn && (
-        <div className="mb-4">
-          <label>Y Columns:</label>
-          {selectedYColumns.map((column, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <select
-                value={column}
-                onChange={(e) => handleYColumnChange(index, e)}
-                className="border border-gray-300 rounded-md p-2 text-black mr-2"
-              >
-                {Object.keys(csvData[0]).map((yColumn) => (
-                  <option key={yColumn} value={yColumn}>
-                    {yColumn}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="color"
-                value={yColumnColors[column]}
-                onChange={(e) => handleColorChange(column, e)}
-                className="mr-2 p-1 size-3 rounded-lg"
-                style={{ backgroundColor: yColumnColors[column] }}
-              />
-              {index > 0 && (
-                <button onClick={() => handleRemoveParameter(index)} className="bg-red-500 text-white px-2 py-1 rounded-md">
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
-          <button onClick={handleAddParameter} className="bg-green-500 text-white px-2 py-1 rounded-md mr-2">
-            Add Parameter
+      {selectedXColumn && selectedYColumns.map((yColumn, index) => (
+        <div key={index} className="mb-4 flex items-center">
+          <label htmlFor={`yColumn${index}`} className="mr-2">
+            Y Column {index + 1}:
+          </label>
+          <select
+            id={`yColumn${index}`}
+            value={yColumn}
+            onChange={(e) => handleYColumnChange(index, e)}
+            className="border border-gray-300 rounded-md p-2 text-black"
+          >
+            {Object.keys(csvData[0]).map((column) => (
+              <option key={column} value={column}>
+                {column}
+              </option>
+            ))}
+          </select>
+          <input
+            type="color"
+            value={yColumnColors[yColumn]}
+            onChange={(e) => handleColorChange(yColumn, e)}
+            className="mr-1 ml-1 p-1  size-3 rounded-lg"
+            style={{ backgroundColor: yColumnColors[yColumn] }}
+          />
+          <button
+            onClick={() => handleRemoveYColumn(index)}
+            className="bg-red-500 text-white px-2 py-1 rounded-md ml-1"
+          >
+            Remove
           </button>
-          {showUpdateButton && (
-            <button onClick={handleSubmit} className="bg-blue-500 text-white px-2 py-1 rounded-md">
-              Update Plot
-            </button>
-          )}
+        </div>
+      ))}
+      <div className="flex">
+  {showUpdateButton && (
+    <button onClick={handleSubmit} className="mt-4 mb-4 mr-2 bg-blue-500 text-white p-2 rounded">
+      Update Plot
+    </button>
+  )}
+  {selectedXColumn && (
+    <button
+      onClick={handleAddYColumn}
+      className="mt-4 mb-4 bg-blue-500 text-white p-2 rounded"
+    >
+      Add Parameter
+    </button>
+  )}
+</div>
+
+      {selectedXColumn && selectedYColumns.length > 0 && is3D && (
+        <div className="mb-4 flex items-center">
+          <label htmlFor="zColumn" className="mr-2">
+            Z Column:
+          </label>
+          <select
+            id="zColumn"
+            value={selectedZColumn}
+            onChange={handleZColumnChange}
+            className="border border-gray-300 rounded-md p-2 text-black"
+          >
+            {Object.keys(csvData[0]).map((column) => (
+              <option key={column} value={column}>
+                {column}
+              </option>
+            ))}
+          </select>
         </div>
       )}
+      <div className="mb-4 flex items-center">
+        <label htmlFor="plotDimension" className="mr-2">
+          Plot Dimension:
+        </label>
+        <select
+          id="plotDimension"
+          value={is3D ? '3D' : '2D'}
+          onChange={handlePlotDimensionChange}
+          className="border border-gray-300 rounded-md p-2 text-black"
+        >
+          <option value="2D">2D</option>
+          <option value="3D">3D</option>
+        </select>
+      </div>
       <div className="mb-4 flex items-center">
         <label htmlFor="plotType" className="mr-2">
           Plot Type:
@@ -219,31 +275,43 @@ const MyPlot = ({ onParsedData }) => {
           onChange={handlePlotTypeChange}
           className="border border-gray-300 rounded-md p-2 text-black"
         >
-          <option value="scatter">Scatter</option>
-          <option value="bar">Bar</option>
-          <option value="line">Line</option>
+          {is3D ? (
+            <>
+              <option value="scatter">3D Scatter</option>
+              <option value="surface">3D Surface</option>
+            </>
+          ) : (
+            <>
+              <option value="scatter">Scatter</option>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+            </>
+          )}
         </select>
       </div>
-      <div className="mb-4 flex items-center">
-        <label htmlFor="plotMode" className="mr-2">
-          Plot Mode:
-        </label>
-        <select
-          id="plotMode"
-          value={plotMode}
-          onChange={handlePlotModeChange}
-          className="border border-gray-300 rounded-md p-2 text-black"
-        >
-          <option value="lines">Lines</option>
-          <option value="markers">Markers</option>
-          <option value="lines+markers">Lines + Markers</option>
-        </select>
-      </div>
+      {!is3D && (
+        <div className="mb-4 flex items-center">
+          <label htmlFor="plotMode" className="mr-2">
+            Plot Mode:
+          </label>
+          <select
+            id="plotMode"
+            value={plotMode}
+            onChange={handlePlotModeChange}
+            className="border border-gray-300 rounded-md p-2 text-black"
+          >
+            <option value="lines+markers">Lines + Markers</option>
+            <option value="lines">Lines</option>
+            <option value="markers">Markers</option>
+          </select>
+        </div>
+      )}
       {plotData && layout && (
-        <div className="w-full max-w-screen-l" style={{ margin: 0, padding: 0 }}>
+        <div className="w-full h-full" style={{ margin: 0, padding: 0 }}>
           <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
         </div>
       )}
+      
     </div>
   );
 };
