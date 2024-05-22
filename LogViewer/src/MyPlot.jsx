@@ -223,12 +223,14 @@ const MyPlot = ({ onParsedData }) => {
     </button>
   )}
   {selectedXColumn && (
+    (!is3D || (is3D && Object.keys(csvData[0]).length>3))&&(
     <button
       onClick={handleAddYColumn}
       className="mt-4 mb-4 bg-blue-500 text-white p-2 rounded"
     >
       Add Parameter
     </button>
+    )
   )}
 </div>
 
