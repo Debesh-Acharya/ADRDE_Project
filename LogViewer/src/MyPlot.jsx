@@ -15,6 +15,8 @@ const MyPlot = ({ onParsedData }) => {
   const [selectedZColumn, setSelectedZColumn] = useState(null);
   const [yColumnColors, setYColumnColors] = useState({});
   const [showUpdateButton, setShowUpdateButton] = useState(false);
+  const [scalingFactors, setScalingFactors] = useState({});
+  const [offsets, setOffsets] = useState({});
 
   useEffect(() => {
     if (csvData) {
@@ -22,7 +24,7 @@ const MyPlot = ({ onParsedData }) => {
       setLayout(layout);
       onParsedData(csvData);  // Notify parent with parsed data
     }
-  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns, selectedZColumn, is3D]);
+  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns, selectedZColumn, is3D, scalingFactors, offsets]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -61,12 +63,18 @@ const MyPlot = ({ onParsedData }) => {
     setSelectedYColumns([columns[1]]);
     setSelectedZColumn(columns.length > 2 ? columns[2] : null);
     const defaultColors = {};
+    const defaultScalingFactors = {};
+    const defaultOffsets = {};
     columns.forEach((column, index) => {
       if (index > 0) {
         defaultColors[column] = getRandomColor();
+        defaultScalingFactors[column] = 1;
+        defaultOffsets[column] = 0;
       }
     });
     setYColumnColors(defaultColors);
+    setScalingFactors(defaultScalingFactors);
+    setOffsets(defaultOffsets);
   };
 
   const updatePlotData = (data, type, mode, is3D) => {
@@ -74,28 +82,29 @@ const MyPlot = ({ onParsedData }) => {
       xaxis: { title: { text: selectedXColumn } },
       yaxis: { title: { text: 'Values' } },
     };
-  
+
+    const transformData = (column, row) => (parseFloat(row[column]) * scalingFactors[column]) + offsets[column];
+
     const plots = is3D ? [{
       x: data.map((row) => row[selectedXColumn]),
-      y: data.map((row) => row[selectedYColumns[0]]),
-      z: data.map((row) => row[selectedZColumn]),
+      y: data.map((row) => transformData(selectedYColumns[0], row)),
+      z: data.map((row) => transformData(selectedZColumn, row)),
       type: type === 'scatter' ? 'scatter3d' : type,
       mode,
       marker: { color: yColumnColors[selectedYColumns[0]] },
       name: `${selectedYColumns[0]} vs ${selectedXColumn} vs ${selectedZColumn}`,
     }] : selectedYColumns.map(yColumn => ({
       x: data.map((row) => row[selectedXColumn]),
-      y: data.map((row) => row[yColumn]),
+      y: data.map((row) => transformData(yColumn, row)),
       type,
       mode,
       marker: { color: yColumnColors[yColumn] },
       name: `${yColumn} vs ${selectedXColumn}`,
     }));
-  
+
     setPlotData(plots);
     return layout;
   };
-  
 
   const handlePlotTypeChange = (event) => {
     setPlotType(event.target.value);
@@ -142,6 +151,16 @@ const MyPlot = ({ onParsedData }) => {
 
   const handleZColumnChange = (event) => {
     setSelectedZColumn(event.target.value);
+    setShowUpdateButton(true);
+  };
+
+  const handleScalingFactorChange = (column, event) => {
+    setScalingFactors({ ...scalingFactors, [column]: parseFloat(event.target.value) });
+    setShowUpdateButton(true);
+  };
+
+  const handleOffsetChange = (column, event) => {
+    setOffsets({ ...offsets, [column]: parseFloat(event.target.value) });
     setShowUpdateButton(true);
   };
 
@@ -205,7 +224,7 @@ const MyPlot = ({ onParsedData }) => {
             type="color"
             value={yColumnColors[yColumn]}
             onChange={(e) => handleColorChange(yColumn, e)}
-            className="mr-1 ml-1 p-1  size-3 rounded-lg"
+            className="mr-1 ml-1 p-1 size-3 rounded-lg"
             style={{ backgroundColor: yColumnColors[yColumn] }}
           />
           <button
@@ -214,26 +233,47 @@ const MyPlot = ({ onParsedData }) => {
           >
             Remove
           </button>
+          <label htmlFor={`scalingFactor${index}`} className="mr-2 ml-2">
+            Scaling Factor:
+          </label>
+          <input
+            id={`scalingFactor${index}`}
+            type="number"
+            step="0.1"
+            value={scalingFactors[yColumn]}
+            onChange={(e) => handleScalingFactorChange(yColumn, e)}
+            className="border border-gray-300 rounded-md p-2 text-black"
+          />
+          <label htmlFor={`offset${index}`} className="mr-2 ml-2">
+            Offset:
+          </label>
+          <input
+            id={`offset${index}`}
+            type="number"
+            step="0.1"
+            value={offsets[yColumn]}
+            onChange={(e) => handleOffsetChange(yColumn, e)}
+            className="border border-gray-300 rounded-md p-2 text-black"
+          />
         </div>
       ))}
       <div className="flex">
-  {showUpdateButton && (
-    <button onClick={handleSubmit} className="mt-4 mb-4 mr-2 bg-blue-500 text-white p-2 rounded">
-      Update Plot
-    </button>
-  )}
-  {selectedXColumn && (
-    (!is3D || (is3D && Object.keys(csvData[0]).length>3))&&(
-    <button
-      onClick={handleAddYColumn}
-      className="mt-4 mb-4 bg-blue-500 text-white p-2 rounded"
-    >
-      Add Parameter
-    </button>
-    )
-  )}
-</div>
-
+        {showUpdateButton && (
+          <button onClick={handleSubmit} className="mt-4 mb-4 mr-2 bg-blue-500 text-white p-2 rounded">
+            Update Plot
+          </button>
+        )}
+        {selectedXColumn && (
+          (!is3D || (is3D && Object.keys(csvData[0]).length > 3)) && (
+            <button
+              onClick={handleAddYColumn}
+              className="mt-4 mb-4 bg-blue-500 text-white p-2 rounded"
+            >
+              Add Parameter
+            </button>
+          )
+        )}
+      </div>
       {selectedXColumn && selectedYColumns.length > 0 && is3D && (
         <div className="mb-4 flex items-center">
           <label htmlFor="zColumn" className="mr-2">
@@ -313,7 +353,6 @@ const MyPlot = ({ onParsedData }) => {
           <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
         </div>
       )}
-      
     </div>
   );
 };
