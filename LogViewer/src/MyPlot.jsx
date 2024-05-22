@@ -80,7 +80,7 @@ const MyPlot = ({ onParsedData }) => {
       y: data.map((row) => row[selectedYColumns[0]]),
       z: data.map((row) => row[selectedZColumn]),
       type: type === 'scatter' ? 'scatter3d' : type,
-      mode: 'markers',
+      mode,
       marker: { color: yColumnColors[selectedYColumns[0]] },
       name: `${selectedYColumns[0]} vs ${selectedXColumn} vs ${selectedZColumn}`,
     }] : selectedYColumns.map(yColumn => ({
@@ -289,7 +289,7 @@ const MyPlot = ({ onParsedData }) => {
           )}
         </select>
       </div>
-      {!is3D && (
+      {(!is3D || plotType === 'scatter') && (
         <div className="mb-4 flex items-center">
           <label htmlFor="plotMode" className="mr-2">
             Plot Mode:
