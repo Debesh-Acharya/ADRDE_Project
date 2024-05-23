@@ -230,7 +230,7 @@ const MyPlot = ({ onParsedData }) => {
                     type="color"
                     value={yColumnColors[yColumn]}
                     onChange={(e) => handleColorChange(yColumn, e)}
-                    className="p-1 size-3 rounded-lg"
+                    className="ml-2 w-6 h-6 p-0 border rounded  mt-1"
                     style={{ backgroundColor: yColumnColors[yColumn] }}
                   />
                   <div className="flex items-center justify-between">
@@ -347,7 +347,7 @@ const MyPlot = ({ onParsedData }) => {
                 </div>
               )}
               <div className="mb-4">
-                <button onClick={handleSubmit} className="bg-dark-blue text-white p-2 rounded w-full">
+                <button onClick={handleSubmit} className="bg-dark-blue text-white p-2 rounded w-full mb-9">
                   Update Plot
                 </button>
               </div>
