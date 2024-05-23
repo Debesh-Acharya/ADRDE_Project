@@ -14,7 +14,7 @@ const MyPlot = ({ onParsedData }) => {
   const [selectedYColumns, setSelectedYColumns] = useState([]);
   const [selectedZColumn, setSelectedZColumn] = useState(null);
   const [yColumnColors, setYColumnColors] = useState({});
-  const [showUpdateButton, setShowUpdateButton] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [scalingFactors, setScalingFactors] = useState({});
   const [offsets, setOffsets] = useState({});
 
@@ -22,7 +22,7 @@ const MyPlot = ({ onParsedData }) => {
     if (csvData) {
       const layout = updatePlotData(csvData, plotType, plotMode, is3D);
       setLayout(layout);
-      onParsedData(csvData);  // Notify parent with parsed data
+      onParsedData(csvData);  
     }
   }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns, selectedZColumn, is3D, scalingFactors, offsets]);
 
@@ -108,70 +108,61 @@ const MyPlot = ({ onParsedData }) => {
 
   const handlePlotTypeChange = (event) => {
     setPlotType(event.target.value);
-    setShowUpdateButton(true);
   };
 
   const handlePlotModeChange = (event) => {
     setPlotMode(event.target.value);
-    setShowUpdateButton(true);
   };
 
   const handlePlotDimensionChange = (event) => {
     setIs3D(event.target.value === '3D');
-    setShowUpdateButton(true);
   };
 
   const handleColorChange = (yColumn, event) => {
     setYColumnColors({ ...yColumnColors, [yColumn]: event.target.value });
-    setShowUpdateButton(true);
   };
 
   const handleXColumnChange = (event) => {
     setSelectedXColumn(event.target.value);
-    setShowUpdateButton(true);
   };
 
   const handleAddYColumn = () => {
     setSelectedYColumns([...selectedYColumns, '']);
+    setScalingFactors({ ...scalingFactors, [`Y Column ${selectedYColumns.length}`]: 1 });
+    setOffsets({ ...offsets, [`Y Column ${selectedYColumns.length}`]: 0 });
   };
 
   const handleRemoveYColumn = (index) => {
     const newSelectedYColumns = [...selectedYColumns];
     newSelectedYColumns.splice(index, 1);
     setSelectedYColumns(newSelectedYColumns);
-    setShowUpdateButton(true);
   };
 
   const handleYColumnChange = (index, event) => {
     const newSelectedYColumns = [...selectedYColumns];
     newSelectedYColumns[index] = event.target.value;
     setSelectedYColumns(newSelectedYColumns);
-    setShowUpdateButton(true);
   };
 
   const handleZColumnChange = (event) => {
     setSelectedZColumn(event.target.value);
-    setShowUpdateButton(true);
   };
 
   const handleScalingFactorChange = (column, event) => {
     setScalingFactors({ ...scalingFactors, [column]: parseFloat(event.target.value) });
-    setShowUpdateButton(true);
   };
 
   const handleOffsetChange = (column, event) => {
     setOffsets({ ...offsets, [column]: parseFloat(event.target.value) });
-    setShowUpdateButton(true);
   };
 
   const handleSubmit = () => {
     const layout = updatePlotData(csvData, plotType, plotMode, is3D);
     setLayout(layout);
-    setShowUpdateButton(false);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full">
+    <div className="flex flex-col items-start w-full h-full">
       <div className="mb-4">
         <label htmlFor="fileUpload" className="mr-2">
           Upload File:
@@ -182,179 +173,161 @@ const MyPlot = ({ onParsedData }) => {
           accept=".csv,.xls,.xlsx,.json,.yml,.yaml"
           onChange={handleFileUpload}
           className="border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      {csvData && (
-        <div className="mb-4 flex items-center">
-          <label htmlFor="xColumn" className="mr-2">
-            X Column:
-          </label>
-          <select
-            id="xColumn"
-            value={selectedXColumn}
-            onChange={handleXColumnChange}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          >
-            {Object.keys(csvData[0]).map((column) => (
-              <option key={column} value={column}>
-                {column}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      {selectedXColumn && selectedYColumns.map((yColumn, index) => (
-        <div key={index} className="mb-4 flex items-center">
-          <label htmlFor={`yColumn${index}`} className="mr-2">
-            Y Column {index + 1}:
-          </label>
-          <select
-            id={`yColumn${index}`}
-            value={yColumn}
-            onChange={(e) => handleYColumnChange(index, e)}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          >
-            {Object.keys(csvData[0]).map((column) => (
-              <option key={column} value={column}>
-                {column}
-              </option>
-            ))}
-          </select>
-          <input
-            type="color"
-            value={yColumnColors[yColumn]}
-            onChange={(e) => handleColorChange(yColumn, e)}
-            className="mr-1 ml-1 p-1 size-3 rounded-lg"
-            style={{ backgroundColor: yColumnColors[yColumn] }}
           />
-          <button
-            onClick={() => handleRemoveYColumn(index)}
-            className="bg-red-500 text-white px-2 py-1 rounded-md ml-1"
-          >
-            Remove
-          </button>
-          <label htmlFor={`scalingFactor${index}`} className="mr-2 ml-2">
-            Scaling Factor:
-          </label>
-          <input
-            id={`scalingFactor${index}`}
-            type="number"
-            step="0.1"
-            value={scalingFactors[yColumn]}
-            onChange={(e) => handleScalingFactorChange(yColumn, e)}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          />
-          <label htmlFor={`offset${index}`} className="mr-2 ml-2">
-            Offset:
-          </label>
-          <input
-            id={`offset${index}`}
-            type="number"
-            step="0.1"
-            value={offsets[yColumn]}
-            onChange={(e) => handleOffsetChange(yColumn, e)}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          />
-        </div>
-      ))}
-      <div className="flex">
-        {showUpdateButton && (
-          <button onClick={handleSubmit} className="mt-4 mb-4 mr-2 bg-blue-500 text-white p-2 rounded">
-            Update Plot
-          </button>
-        )}
-        {selectedXColumn && (
-          (!is3D || (is3D && Object.keys(csvData[0]).length > 3)) && (
-            <button
-              onClick={handleAddYColumn}
-              className="mt-4 mb-4 bg-blue-500 text-white p-2 rounded"
-            >
-              Add Parameter
-            </button>
-          )
-        )}
-      </div>
-      {selectedXColumn && selectedYColumns.length > 0 && is3D && (
-        <div className="mb-4 flex items-center">
-          <label htmlFor="zColumn" className="mr-2">
-            Z Column:
-          </label>
-          <select
-            id="zColumn"
-            value={selectedZColumn}
-            onChange={handleZColumnChange}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          >
-            {Object.keys(csvData[0]).map((column) => (
-              <option key={column} value={column}>
-                {column}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      <div className="mb-4 flex items-center">
-        <label htmlFor="plotDimension" className="mr-2">
-          Plot Dimension:
-        </label>
-        <select
-          id="plotDimension"
-          value={is3D ? '3D' : '2D'}
-          onChange={handlePlotDimensionChange}
-          className="border border-gray-300 rounded-md p-2 text-black"
-        >
-          <option value="2D">2D</option>
-          <option value="3D">3D</option>
-        </select>
-      </div>
-      <div className="mb-4 flex items-center">
-        <label htmlFor="plotType" className="mr-2">
-          Plot Type:
-        </label>
-        <select
-          id="plotType"
-          value={plotType}
-          onChange={handlePlotTypeChange}
-          className="border border-gray-300 rounded-md p-2 text-black"
-        >
-          {is3D ? (
+          </div>
+          {showControls && csvData && (
             <>
-              <option value="scatter">3D Scatter</option>
-              <option value="surface">3D Surface</option>
-            </>
-          ) : (
-            <>
-              <option value="scatter">Scatter</option>
-              <option value="bar">Bar</option>
-              <option value="line">Line</option>
+              <div className="mb-4 flex items-center">
+                <label htmlFor="xColumn" className="mr-2">
+                  X Column:
+                </label>
+                <select
+                  id="xColumn"
+                  value={selectedXColumn}
+                  onChange={handleXColumnChange}
+                  className="border border-gray-300 rounded-md p-2 text-black"
+                >
+                  {Object.keys(csvData[0]).map((column) => (
+                    <option key={column} value={column}>
+                      {column}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedXColumn && selectedYColumns.map((yColumn, index) => (
+                <div key={index} className="mb-4 flex items-center">
+                  <label htmlFor={`yColumn${index}`} className="mr-2">
+                    Y Column {index + 1}:
+                  </label>
+                  <select
+                    id={`yColumn${index}`}
+                    value={yColumn}
+                    onChange={(e) => handleYColumnChange(index, e)}
+                    className="border border-gray-300 rounded-md p-2 text-black"
+                  >
+                    {Object.keys(csvData[0]).map((column) => (
+                      <option key={column} value={column}>
+                        {column}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="color"
+                    value={yColumnColors[yColumn]}
+                    onChange={(e) => handleColorChange(yColumn, e)}
+                    className="mr-1 ml-1 p-1 size-3 rounded-lg"
+                    style={{ backgroundColor: yColumnColors[yColumn] }}
+                  />
+                  <button
+                    onClick={() => handleRemoveYColumn(index)}
+                    className="bg-red-500 text-white px-2 py-1 rounded-md ml-1"
+                  >
+                    Remove
+                  </button>
+                  <label htmlFor={`scalingFactor${index}`} className="mr-2 ml-2">
+                    Scaling Factor:
+                  </label>
+                  <input
+                    id={`scalingFactor${index}`}
+                    type="number"
+                    step="0.1"
+                    value={scalingFactors[yColumn]}
+                    onChange={(e) => handleScalingFactorChange(yColumn, e)}
+                    className="border border-gray-300 rounded-md p-2 text-black"
+                  />
+                  <label htmlFor={`offset${index}`} className="mr-2 ml-2">
+                    Offset:
+                  </label>
+                  <input
+                    id={`offset${index}`}
+                    type="number"
+                    step="0.1"
+                    value={offsets[yColumn]}
+                    onChange={(e) => handleOffsetChange(yColumn, e)}
+                    className="border border-gray-300 rounded-md p-2 text-black"
+                  />
+                </div>
+              ))}
+              <div className="mb-4 flex items-center">
+                <button onClick={handleAddYColumn} className="bg-blue-500 text-white p-2 rounded">
+                  Add Parameter
+                </button>
+              </div>
+              <div className="mb-4 flex items-center">
+                <label htmlFor="plotDimension" className="mr-2">
+                  Plot Dimension:
+                </label>
+                <select
+                  id="plotDimension"
+                  value={is3D ? '3D' : '2D'}
+                  onChange={handlePlotDimensionChange}
+                  className="border border-gray-300 rounded-md p-2 text-black"
+                >
+                  <option value="2D">2D</option>
+                  <option value="3D">3D</option>
+                </select>
+              </div>
+              <div className="mb-4 flex items-center">
+                <label htmlFor="plotType" className="mr-2">
+                  Plot Type:
+                </label>
+                <select
+                  id="plotType"
+                  value={plotType}
+                  onChange={handlePlotTypeChange}
+                  className="border border-gray-300 rounded-md p-2 text-black"
+                >
+                  {is3D ? (
+                    <>
+                      <option value="scatter">3D Scatter</option>
+                      <option value="surface">3D Surface</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="scatter">Scatter</option>
+                      <option value="bar">Bar</option>
+                      <option value="line">Line</option>
+                    </>
+                  )}
+                </select>
+              </div>
+              {!is3D && (
+                <div className="mb-4 flex items-center">
+                  <label htmlFor="plotMode" className="mr-2">
+                    Plot Mode:
+                  </label>
+                  <select
+                    id="plotMode"
+                    value={plotMode}
+                    onChange={handlePlotModeChange}
+                    className="border border-gray-300 rounded-md p-2 text-black"
+                  >
+                    <option value="lines+markers">Lines + Markers</option>
+                    <option value="lines">Lines</option>
+                    <option value="markers">Markers</option>
+                  </select>
+                </div>
+              )}
+              <div className="mb-4">
+                <button onClick={handleSubmit} className="bg-blue-500 text-white p-2 rounded">
+                  Update Plot
+                </button>
+              </div>
             </>
           )}
-        </select>
-      </div>
-      {(!is3D || plotType === 'scatter') && (
-        <div className="mb-4 flex items-center">
-          <label htmlFor="plotMode" className="mr-2">
-            Plot Mode:
-          </label>
-          <select
-            id="plotMode"
-            value={plotMode}
-            onChange={handlePlotModeChange}
-            className="border border-gray-300 rounded-md p-2 text-black"
-          >
-            <option value="lines+markers">Lines + Markers</option>
-            <option value="lines">Lines</option>
-            <option value="markers">Markers</option>
-          </select>
+          <div className="flex-grow w-full h-full">
+            {plotData && layout && (
+              <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
+            )}
+          </div>
+          <div className="fixed bottom-4 right-4 z-10">
+            <button onClick={() => setShowControls(!showControls)} className="bg-gray-800 text-white px-4 py-2 rounded-lg">
+              {showControls ? 'Hide Controls' : 'Show Controls'}
+            </button>
+          </div>
         </div>
-      )}
-      {plotData && layout && (
-        <div className="w-full h-full" style={{ margin: 0, padding: 0 }}>
-          <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MyPlot;
+      );
+    };
+    
+    export default MyPlot;
+    
