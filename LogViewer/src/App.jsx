@@ -11,7 +11,6 @@ const App = () => {
 
   return (
     <div>
-      <h1>Log Viewer</h1>
       <MyPlot onParsedData={handleParsedData} />
       {/* {flightData && <WorldSimulationViewer data={flightData} />} */}
     </div>

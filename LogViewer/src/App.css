@@ -1,8 +1,17 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
+}
+body {
+  margin: 0; /* Ensure no default body margin */
+  padding: 0; /* Ensure no default body padding */
+}
+
+header {
+  margin: 0; /* Ensure no margin */
+  padding: 0; /* Ensure no padding */
 }
 
 .logo {
@@ -28,7 +37,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
+  .logo.react:hover {
     animation: logo-spin infinite 20s linear;
   }
 }
