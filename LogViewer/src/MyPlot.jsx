@@ -189,7 +189,6 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
   const handlePlotDimensionChange = (event) => {
     updateGraph(id, { ...graph, is3D: event.target.value === '3D' });
   };
-  
 
   return (
     <div className="mb-8 p-4 border border-gray-300 rounded bg-gray-700 text-white">
@@ -358,11 +357,11 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
 };
 
 const PlotComponent = ({ graph, csvData }) => {
-  const { selectedXColumn, selectedYColumns, selectedZColumn, plotType, plotMode, is3D } = graph;
+  const { selectedXColumn, selectedYColumns, selectedZColumn, plotType, plotMode, is3D, scalingFactors, offsets } = graph;
 
   const plotData = selectedYColumns.map((yColumn) => {
-    const xData = csvData.map((row) => row[selectedXColumn]);
-    const yData = csvData.map((row) => parseFloat(row[yColumn]));
+    const xData = csvData.map((row) => parseFloat(row[selectedXColumn]));
+    const yData = csvData.map((row) => parseFloat(row[yColumn]) * (scalingFactors[yColumn] || 1) + (offsets[yColumn] || 0));
     const name = `${yColumn} vs ${selectedXColumn}`;
     const markerColor = graph.yColumnColors[yColumn] || '#000000';
 
