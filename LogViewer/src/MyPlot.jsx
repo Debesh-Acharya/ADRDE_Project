@@ -7,11 +7,11 @@ import './MyPlot.css';
 
 const MyPlot = ({ onParsedData }) => {
   const [csvData, setCsvData] = useState(null);
-  const [plotData, setPlotData] = useState(null);
+  const [plots, setPlots] = useState([]);
+  const [plotLayout, setPlotLayout] = useState(null);
   const [plotType, setPlotType] = useState('scatter');
   const [plotMode, setPlotMode] = useState('lines+markers');
   const [is3D, setIs3D] = useState(false);
-  const [layout, setLayout] = useState(null);
   const [selectedXColumn, setSelectedXColumn] = useState(null);
   const [selectedYColumns, setSelectedYColumns] = useState([]);
   const [selectedZColumn, setSelectedZColumn] = useState(null);
@@ -22,11 +22,29 @@ const MyPlot = ({ onParsedData }) => {
 
   useEffect(() => {
     if (csvData) {
-      const layout = updatePlotData(csvData, plotType, plotMode, is3D);
-      setLayout(layout);
+      const layout = {
+        xaxis: { title: { text: selectedXColumn } },
+        yaxis: { title: { text: 'Values' } },
+        autosize: true,
+      };
+      setPlotLayout(layout);
       onParsedData(csvData);
     }
-  }, [csvData, plotType, plotMode, selectedXColumn, selectedYColumns, selectedZColumn, is3D, scalingFactors, offsets]);
+  }, [csvData, selectedXColumn, onParsedData]);
+
+  useEffect(() => {
+    if (csvData) {
+      const updatePlots = () => {
+        const newPlots = [];
+        selectedYColumns.forEach((yColumn) => {
+          const plotData = updatePlotData(csvData, plotType, plotMode, is3D, yColumn);
+          newPlots.push(plotData);
+        });
+        setPlots(newPlots);
+      };
+      updatePlots();
+    }
+  }, [csvData, plotType, plotMode, is3D, selectedYColumns]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -79,34 +97,27 @@ const MyPlot = ({ onParsedData }) => {
     setOffsets(defaultOffsets);
   };
 
-  const updatePlotData = (data, type, mode, is3D) => {
-    const layout = {
-      xaxis: { title: { text: selectedXColumn } },
-      yaxis: { title: { text: 'Values' } },
-      autosize: true,
-    };
-
+  const updatePlotData = (data, type, mode, is3D, yColumn) => {
     const transformData = (column, row) => (parseFloat(row[column]) * scalingFactors[column]) + offsets[column];
 
-    const plots = is3D ? [{
+    const plot = is3D ? {
       x: data.map((row) => row[selectedXColumn]),
-      y: data.map((row) => transformData(selectedYColumns[0], row)),
+      y: data.map((row) => transformData(yColumn, row)),
       z: data.map((row) => transformData(selectedZColumn, row)),
       type: type === 'scatter' ? 'scatter3d' : type,
       mode,
-      marker: { color: yColumnColors[selectedYColumns[0]] },
-      name: `${selectedYColumns[0]} vs ${selectedXColumn} vs ${selectedZColumn}`,
-    }] : selectedYColumns.map(yColumn => ({
+      marker: { color: yColumnColors[yColumn] },
+      name: `${yColumn} vs ${selectedXColumn} vs ${selectedZColumn}`,
+    } : {
       x: data.map((row) => row[selectedXColumn]),
       y: data.map((row) => transformData(yColumn, row)),
       type,
       mode,
       marker: { color: yColumnColors[yColumn] },
       name: `${yColumn} vs ${selectedXColumn}`,
-    }));
+    };
 
-    setPlotData(plots);
-    return layout;
+    return plot;
   };
 
   const handlePlotTypeChange = (event) => {
@@ -160,15 +171,14 @@ const MyPlot = ({ onParsedData }) => {
   };
 
   const handleSubmit = () => {
-    const layout = updatePlotData(csvData, plotType, plotMode, is3D);
-    setLayout(layout);
+    // No need to do anything here as plots are updated automatically
   };
 
   return (
     <div className="flex flex-col items-start w-full h-full relative">
       <header>
         <h1>Log-viewer</h1>
-      </header>
+        </header>
       <CSSTransition
         in={showControls}
         timeout={300}
@@ -356,9 +366,16 @@ const MyPlot = ({ onParsedData }) => {
         </div>
       </CSSTransition>
       <div className={`flex-grow w-full h-full transition-all duration-300 mt-16 ${showControls ? 'ml-72' : 'ml-0'}`}>
-        {plotData && layout && (
-          <Plot data={plotData} layout={layout} style={{ width: '100%', height: '100%' }} title={'File Data Plot'} responsive={true} />
-        )}
+        {plots.map((plotData, index) => (
+          <Plot
+            key={index}
+            data={[plotData]}
+            layout={plotLayout}
+            style={{ width: '100%', height: '100%' }}
+            title={`File Data Plot ${index + 1}`}
+            responsive={true}
+          />
+        ))}
       </div>
       <div className="fixed top-4 left-4 z-30">
         <button
@@ -373,3 +390,5 @@ const MyPlot = ({ onParsedData }) => {
 };
 
 export default MyPlot;
+
+     
