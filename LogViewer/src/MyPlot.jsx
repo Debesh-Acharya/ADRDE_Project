@@ -284,24 +284,6 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
         Add Y Column
       </button>
       <div className="mb-4">
-        <label htmlFor={`zColumn${id}`} className="block mb-2">
-          Z Column (optional):
-        </label>
-        <select
-          id={`zColumn${id}`}
-          value={selectedZColumn || ''}
-          onChange={handleZColumnChange}
-          className="w-full p-2"
-        >
-          <option value="">None</option>
-          {Object.keys(csvData[0]).map(column => (
-            <option key={column} value={column}>
-              {column}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="mb-4">
         <label htmlFor={`plotType${id}`} className="block mb-2">
           Plot Type:
         </label>
@@ -345,6 +327,26 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
           <option value="3D">3D</option>
         </select>
       </div>
+      {is3D && (
+        <div className="mb-4">
+          <label htmlFor={`zColumn${id}`} className="block mb-2">
+            Z Column:
+          </label>
+          <select
+            id={`zColumn${id}`}
+            value={selectedZColumn || ''}
+            onChange={handleZColumnChange}
+            className="w-full p-2"
+          >
+            <option value="">None</option>
+            {Object.keys(csvData[0]).map(column => (
+              <option key={column} value={column}>
+                {column}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 };
