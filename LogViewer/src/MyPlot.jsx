@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Plot from 'react-plotly.js';
-import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil } from './utils/fileParserUtils';
+import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil, parseTXT as parseTXTUtil } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
 import './MyPlot.css';
@@ -13,9 +13,11 @@ const MyPlot = ({ onParsedData }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const extension = file.name.split('.').pop().toLowerCase();
-
+  
     switch (extension) {
       case 'csv':
+      case 'tsv':
+      case 'txt':
         parseCSVUtil(file, handleParsedData);
         break;
       case 'xls':
@@ -35,6 +37,7 @@ const MyPlot = ({ onParsedData }) => {
         console.error('Unsupported file format');
     }
   };
+  
 
   const handleParsedData = (results) => {
     if (results.errors && results.errors.length > 0) {
