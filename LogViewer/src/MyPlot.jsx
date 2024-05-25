@@ -350,29 +350,49 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
 };
 
 const PlotComponent = ({ graph, csvData }) => {
-  const { selectedXColumn, selectedYColumns, selectedZColumn, yColumnColors, scalingFactors, offsets, plotType, plotMode, is3D } = graph;
+  const { selectedXColumn, selectedYColumns, selectedZColumn, plotType, plotMode, is3D, scalingFactors, offsets } = graph;
 
-  const plotData = selectedYColumns.map(yColumn => ({
-    x: csvData.map(row => row[selectedXColumn]),
-    y: csvData.map(row => row[yColumn] * scalingFactors[yColumn] + offsets[yColumn]),
-    type: plotType,
-    mode: plotMode,
-    marker: { color: yColumnColors[yColumn] },
-  }));
+  const plotData = selectedYColumns.map((yColumn) => {
+    const xData = csvData.map((row) => parseFloat(row[selectedXColumn]));
+    const yData = csvData.map((row) => parseFloat(row[yColumn]) * (scalingFactors[yColumn] || 1) + (offsets[yColumn] || 0));
+    const name = `${yColumn} vs ${selectedXColumn}`;
+    const markerColor = graph.yColumnColors[yColumn] || '#000000';
 
-  if (is3D) {
-    plotData.forEach(data => {
-      data.z = csvData.map(row => row[selectedZColumn]);
-      data.type = 'scatter3d';
-      data.mode = plotMode;
-      data.marker = { color: yColumnColors[selectedYColumns[0]] };
-    });
-  }
+    if (is3D) {
+      const zData = csvData.map((row) => parseFloat(row[selectedZColumn]));
+      return {
+        x: xData,
+        y: yData,
+        z: zData,
+        type: plotType === 'scatter' ? 'scatter3d' : plotType,
+        mode: plotMode,
+        name,
+        marker: { color: markerColor },
+      };
+    } else {
+      return {
+        x: xData,
+        y: yData,
+        type: plotType,
+        mode: plotMode,
+        name,
+        marker: { color: markerColor },
+      };
+    }
+  });
+
+  const layout = {
+    xaxis: { title: { text: selectedXColumn } },
+    yaxis: { title: { text: 'Values' } },
+    autosize: true,
+  };
 
   return (
     <Plot
       data={plotData}
-      layout={{ width: 800, height: 600, title: `Graph ${graph.id + 1}` }}
+      layout={layout}
+      style={{ width: '100%', height: '100%' }}
+      responsive={true}
     />
   );
 };
