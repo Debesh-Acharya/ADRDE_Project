@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Plot from 'react-plotly.js';
-import { parseCSV as parseCSVUtil, parseXLS as parseXLSUtil, parseJSON as parseJSONUtil, parseYAML as parseYAMLUtil, parseTXT as parseTXTUtil } from './utils/fileParserUtils';
+import { parseCSV, parseXLS, parseJSON, parseYAML, parseTXT } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
 import './MyPlot.css';
@@ -19,20 +19,20 @@ const MyPlot = ({ onParsedData }) => {
       case 'csv':
       case 'tsv':
       case 'txt':
-        parseCSVUtil(file, handleParsedData);
+        parseCSV(file, handleParsedData);
         break;
       case 'xls':
       case 'xlsx':
         import('xlsx').then((XLSX) => {
-          parseXLSUtil(file, XLSX, handleParsedData);
+          parseXLS(file, XLSX, handleParsedData);
         });
         break;
       case 'json':
-        parseJSONUtil(file, handleParsedData);
+        parseJSON(file, handleParsedData);
         break;
       case 'yml':
       case 'yaml':
-        parseYAMLUtil(file, handleParsedData);
+        parseYAML(file, handleParsedData);
         break;
       default:
         console.error('Unsupported file format');
@@ -237,61 +237,57 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
                 </option>
               ))}
             </select>
-            <button
-              onClick={() => handleRemoveYColumn(index)}
-              className="ml-2 bg-red-500 text-white px-2 py-1 rounded-md"
-            >
-              ×
-            </button>
+            {index > 0 && (
+              <button
+                onClick={() => handleRemoveYColumn(index)}
+                className="bg-red-500 text-white px-2 py-1 ml-2 rounded-md"
+              >
+                ×
+              </button>
+            )}
           </div>
-          <input
-            type="color"
-            value={yColumnColors[yColumn]}
-            onChange={(e) => handleColorChange(yColumn, e)}
-            className="ml-2 w-6 h-6 p-0 border rounded mt-1"
-            style={{ backgroundColor: yColumnColors[yColumn] }}
-          />
-          <div className="mb-2">
-            <label htmlFor={`scalingFactor${id}-${index}`} className="block mb-1">
-              Scaling Factor:
-            </label>
+          <div className="flex items-center mb-2">
+            <label className="block w-1/3">Color:</label>
             <input
-              type="number"
-              id={`scalingFactor${id}-${index}`}
-              value={scalingFactors[yColumn]}
-              onChange={(e) => handleScalingFactorChange(yColumn, e)}
-              className="w-full p-2"
+              type="color"
+              value={yColumnColors[yColumn]}
+              onChange={(e) => handleColorChange(yColumn, e)}
+              className="w-2/3"
             />
           </div>
-          <div className="mb-2">
-            <label htmlFor={`offset${id}-${index}`} className="block mb-1">
-              Offset:
-            </label>
+          <div className="flex items-center mb-2">
+            <label className="block w-1/3">Scaling Factor:</label>
             <input
               type="number"
-              id={`offset${id}-${index}`}
+              value={scalingFactors[yColumn]}
+              onChange={(e) => handleScalingFactorChange(yColumn, e)}
+              className="w-2/3 p-2"
+            />
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="block w-1/3">Offset:</label>
+            <input
+              type="number"
               value={offsets[yColumn]}
               onChange={(e) => handleOffsetChange(yColumn, e)}
-              className="w-full p-2"
+              className="w-2/3 p-2"
             />
           </div>
         </div>
       ))}
-      <button
-        onClick={handleAddYColumn}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4"
-      >
+      <button onClick={handleAddYColumn} className="bg-dark-blue text-white p-2 rounded w-full mb-4">
         Add Y Column
       </button>
       <div className="mb-4">
         <label htmlFor={`zColumn${id}`} className="block mb-2">
-          Z Column (optional):
+          Z Column (for 3D plots):
         </label>
         <select
           id={`zColumn${id}`}
           value={selectedZColumn || ''}
           onChange={handleZColumnChange}
           className="w-full p-2"
+          disabled={!is3D}
         >
           <option value="">None</option>
           {Object.keys(csvData[0]).map(column => (
@@ -302,45 +298,27 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
         </select>
       </div>
       <div className="mb-4">
-        <label htmlFor={`plotType${id}`} className="block mb-2">
-          Plot Type:
-        </label>
-        <select
-          id={`plotType${id}`}
-          value={plotType}
-          onChange={handlePlotTypeChange}
-          className="w-full p-2"
-        >
+        <label className="block mb-2">Plot Type:</label>
+        <select value={plotType} onChange={handlePlotTypeChange} className="w-full p-2">
           <option value="scatter">Scatter</option>
           <option value="bar">Bar</option>
           <option value="line">Line</option>
+          <option value="histogram">Histogram</option>
         </select>
       </div>
+      {plotType === 'scatter' && (
+        <div className="mb-4">
+          <label className="block mb-2">Plot Mode:</label>
+          <select value={plotMode} onChange={handlePlotModeChange} className="w-full p-2">
+            <option value="lines">Lines</option>
+            <option value="markers">Markers</option>
+            <option value="lines+markers">Lines + Markers</option>
+          </select>
+        </div>
+      )}
       <div className="mb-4">
-        <label htmlFor={`plotMode${id}`} className="block mb-2">
-          Plot Mode:
-        </label>
-        <select
-          id={`plotMode${id}`}
-          value={plotMode}
-          onChange={handlePlotModeChange}
-          className="w-full p-2"
-        >
-          <option value="lines+markers">Lines + Markers</option>
-          <option value="lines">Lines</option>
-          <option value="markers">Markers</option>
-        </select>
-      </div>
-      <div className="mb-4">
-        <label htmlFor={`plotDimension${id}`} className="block mb-2">
-          Plot Dimension:
-        </label>
-        <select
-          id={`plotDimension${id}`}
-          value={is3D ? '3D' : '2D'}
-          onChange={handlePlotDimensionChange}
-          className="w-full p-2"
-        >
+        <label className="block mb-2">Plot Dimension:</label>
+        <select value={is3D ? '3D' : '2D'} onChange={handlePlotDimensionChange} className="w-full p-2">
           <option value="2D">2D</option>
           <option value="3D">3D</option>
         </select>
@@ -350,51 +328,47 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
 };
 
 const PlotComponent = ({ graph, csvData }) => {
-  const { selectedXColumn, selectedYColumns, selectedZColumn, plotType, plotMode, is3D, scalingFactors, offsets } = graph;
+  const { selectedXColumn, selectedYColumns, selectedZColumn, yColumnColors, scalingFactors, offsets, plotType, plotMode, is3D } = graph;
 
-  const plotData = selectedYColumns.map((yColumn) => {
-    const xData = csvData.map((row) => parseFloat(row[selectedXColumn]));
-    const yData = csvData.map((row) => parseFloat(row[yColumn]) * (scalingFactors[yColumn] || 1) + (offsets[yColumn] || 0));
-    const name = `${yColumn} vs ${selectedXColumn}`;
-    const markerColor = graph.yColumnColors[yColumn] || '#000000';
+  const plotData = selectedYColumns.map(yColumn => {
+    const xData = csvData.map(row => parseFloat(row[selectedXColumn]));
+    const yData = csvData.map(row => (parseFloat(row[yColumn]) * scalingFactors[yColumn]) + offsets[yColumn]);
+
+    const plotObject = {
+      x: xData,
+      y: yData,
+      type: plotType,
+      mode: plotMode,
+      marker: { color: yColumnColors[yColumn] },
+      name: yColumn,
+    };
 
     if (is3D) {
-      const zData = csvData.map((row) => parseFloat(row[selectedZColumn]));
-      return {
-        x: xData,
-        y: yData,
-        z: zData,
-        type: plotType === 'scatter' ? 'scatter3d' : plotType,
-        mode: plotMode,
-        name,
-        marker: { color: markerColor },
-      };
-    } else {
-      return {
-        x: xData,
-        y: yData,
-        type: plotType,
-        mode: plotMode,
-        name,
-        marker: { color: markerColor },
-      };
+      plotObject.z = csvData.map(row => parseFloat(row[selectedZColumn]));
+      plotObject.type = 'scatter3d';
+      plotObject.mode = 'markers';
     }
+
+    return plotObject;
   });
 
   const layout = {
-    xaxis: { title: { text: selectedXColumn } },
-    yaxis: { title: { text: 'Values' } },
-    autosize: true,
+    title: `Graph ${graph.id + 1}`,
+    xaxis: { title: selectedXColumn },
+    yaxis: { title: selectedYColumns.join(', ') },
+    showlegend: true,
+    height: 600,
   };
 
-  return (
-    <Plot
-      data={plotData}
-      layout={layout}
-      style={{ width: '100%', height: '100%' }}
-      responsive={true}
-    />
-  );
+  if (is3D) {
+    layout.scene = {
+      xaxis: { title: selectedXColumn },
+      yaxis: { title: selectedYColumns.join(', ') },
+      zaxis: { title: selectedZColumn },
+    };
+  }
+
+  return <Plot data={plotData} layout={layout} />;
 };
 
 export default MyPlot;
