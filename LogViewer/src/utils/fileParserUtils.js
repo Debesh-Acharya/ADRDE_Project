@@ -21,16 +21,34 @@ const detectDelimiter = (input) => {
   return bestDelimiter;
 };
 
+const findHeaderRowIndex = (data) => {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].every(cell => isNaN(cell))) {
+      return i;
+    }
+  }
+  return 0; // Default to the first row if no suitable header is found
+};
+
 const parseCSVContent = (content, handleParsedData) => {
   const delimiter = detectDelimiter(content);
   Papa.parse(content, {
-    header: true,
     delimiter: delimiter,
+    skipEmptyLines: true,
     complete: (results) => {
-      if (results.meta.fields) {
-        results.meta.fields = cleanHeaders(results.meta.fields);
-      }
-      handleParsedData(results);
+      const data = results.data;
+      const headerRowIndex = findHeaderRowIndex(data);
+      const headers = cleanHeaders(data[headerRowIndex]);
+
+      const parsedData = data.slice(headerRowIndex + 1).map(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index];
+        });
+        return obj;
+      });
+
+      handleParsedData({ data: parsedData, meta: { fields: headers } });
     },
   });
 };
