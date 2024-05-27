@@ -184,14 +184,16 @@ const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
     updateGraph(id, { ...graph, yColumnColors: newYColumnColors });
   };
 
-  const handleScalingFactorChange = (yColumn, event) => {    const newScalingFactors = { ...scalingFactors, [yColumn]: parseFloat(event.target.value) };
-  updateGraph(id, { ...graph, scalingFactors: newScalingFactors });
-};
-
-const handleOffsetChange = (yColumn, event) => {
-  const newOffsets = { ...offsets, [yColumn]: parseFloat(event.target.value) };
-  updateGraph(id, { ...graph, offsets: newOffsets });
-};
+  const handleScalingFactorChange = (yColumn, event) => {
+    const newScalingFactors = { ...scalingFactors, [yColumn]: parseFloat(event.target.value) || 1 };
+    updateGraph(id, { ...graph, scalingFactors: newScalingFactors });
+  };
+  
+  const handleOffsetChange = (yColumn, event) => {
+    const newOffsets = { ...offsets, [yColumn]: parseFloat(event.target.value) || 0 };
+    updateGraph(id, { ...graph, offsets: newOffsets });
+  };
+  
 
 const handlePlotTypeChange = (event) => {
   updateGraph(id, { ...graph, plotType: event.target.value });
