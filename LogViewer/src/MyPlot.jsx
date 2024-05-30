@@ -1,12 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef,useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import {
-  parseCSV as parseCSVUtil,
-  parseXLS as parseXLSUtil,
-  parseJSON as parseJSONUtil,
-  parseYAML as parseYAMLUtil,
-  parseTXT as parseTXTUtil
-} from './utils/fileParserUtils';
+// import {
+//   parseCSV as parseCSVUtil,
+//   parseXLS as parseXLSUtil,
+//   parseJSON as parseJSONUtil,
+//   parseYAML as parseYAMLUtil,
+//   parseTXT as parseTXTUtil
+// } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
 import './MyPlot.css';
@@ -16,35 +16,50 @@ const MyPlot = ({ onParsedData }) => {
   const [graphs, setGraphs] = useState([]);
   const [showControls, setShowControls] = useState(false);
   const nodeRef = useRef(null);  // Create a ref
+  const workerRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize the web worker
+    workerRef.current = new Worker(new URL('./fileParserWorker.js', import.meta.url),{type:'module'});
+    workerRef.current.onmessage = (e) => {
+      handleParsedData(e.data);
+    };
+
+    return () => {
+      // Terminate the worker when the component is unmounted
+      workerRef.current.terminate();
+    };
+  }, []);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const extension = file.name.split('.').pop().toLowerCase();
+    workerRef.current.postMessage({file,fileType:extension});
   
-    switch (extension) {
-      case 'csv':
-      case 'tsv':
-        parseCSVUtil(file, handleParsedData);
-        break;
-      case 'xls':
-      case 'xlsx':
-        import('xlsx').then((XLSX) => {
-          parseXLSUtil(file, XLSX, handleParsedData);
-        });
-        break;
-      case 'json':
-        parseJSONUtil(file, handleParsedData);
-        break;
-      case 'yml':
-      case 'yaml':
-        parseYAMLUtil(file, handleParsedData);
-        break;
-      case 'txt':
-        parseTXTUtil(file, handleParsedData);
-        break;
-      default:
-        console.error('Unsupported file format');
-    }
+    // switch (extension) {
+    //   case 'csv':
+    //   case 'tsv':
+    //     parseCSVUtil(file, handleParsedData);
+    //     break;
+    //   case 'xls':
+    //   case 'xlsx':
+    //     import('xlsx').then((XLSX) => {
+    //       parseXLSUtil(file, XLSX, handleParsedData);
+    //     });
+    //     break;
+    //   case 'json':
+    //     parseJSONUtil(file, handleParsedData);
+    //     break;
+    //   case 'yml':
+    //   case 'yaml':
+    //     parseYAMLUtil(file, handleParsedData);
+    //     break;
+    //   case 'txt':
+    //     parseTXTUtil(file, handleParsedData);
+    //     break;
+    //   default:
+    //     console.error('Unsupported file format');
+    // }
   };
 
   const handleParsedData = (results) => {
