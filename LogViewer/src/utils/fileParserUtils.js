@@ -21,13 +21,18 @@ const detectDelimiter = (input) => {
   return bestDelimiter;
 };
 
-const findHeaderRowIndex = (data) => {
+const findHeaderRowIndex = (data, threshold = 0.5) => {
+  const isNonNumeric = (cell) => isNaN(cell) || cell.trim() === "";
+  
   for (let i = 0; i < data.length; i++) {
-    if (data[i].every(cell => isNaN(cell))) {
+    let nonNumericCount = data[i].reduce((count, cell) => count + isNonNumeric(cell), 0);
+    let nonNumericPercentage = nonNumericCount / data[i].length;
+    
+    if (nonNumericPercentage >= threshold) {
       return i;
     }
   }
-  return 0; // Default to the first row if no suitable header is found
+  return 0;
 };
 
 const parseCSVContent = (content, handleParsedData) => {
