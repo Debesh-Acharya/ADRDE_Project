@@ -9,6 +9,7 @@ import Plot from 'react-plotly.js';
 // } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
+import ThreeJSScene from './ThreeJSScene';
 import './MyPlot.css';
 
 const MyPlot = ({ onParsedData }) => {
@@ -142,11 +143,10 @@ const MyPlot = ({ onParsedData }) => {
       </CSSTransition>
       <div className={`flex-grow w-full h-full transition-all duration-300 mt-16 ${showControls ? 'ml-72' : 'ml-0'}`}>
         {graphs.map(graph => (
-          <PlotComponent
-            key={graph.id}
-            graph={graph}
-            csvData={csvData}
-          />
+          <div key={graph.id}>
+            <PlotComponent graph={graph} csvData={csvData} />
+            <ThreeJSScene graph={graph} csvData={csvData} />
+          </div>
         ))}
       </div>
       <div className="fixed top-4 left-4 z-30">
