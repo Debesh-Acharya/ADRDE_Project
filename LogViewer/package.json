@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^9.106.0",
+    "@react-three/fiber": "^8.16.7",
     "axios": "^1.6.8",
     "cesium": "^1.117.0",
     "csv-parser": "^3.0.0",
@@ -25,6 +27,8 @@
     "react-plotly.js": "^2.6.0",
     "react-transition-group": "^4.4.5",
     "svg-path-parser": "^1.1.0",
+    "three": "^0.165.0",
+    "three-stdlib": "^2.30.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
