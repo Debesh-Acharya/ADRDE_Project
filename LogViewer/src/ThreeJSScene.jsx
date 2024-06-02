@@ -33,22 +33,28 @@ const ThreeJSScene = ({ graph, csvData }) => {
       z: graph.is3D ? parseFloat(row[graph.selectedZColumn]) : 0,
     }));
 
-    // Create a path from the data points
-    const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(p.x, p.y, p.z)));
+    if (points.length === 0) {
+      console.error("No valid points found in csvData.");
+      return;
+    }
+
+    // Create a path from the data points using CatmullRomCurve3
+    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, p.z)));
 
     // Draw path
-    const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-    const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(1000));
-    const line = new THREE.Line(geometry, material);
-    scene.add(line);
+    const pathPoints = curve.getPoints(1000);
+    const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+    const pathMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+    const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+    scene.add(pathLine);
 
-    // Create a sphere that will travel along the path
-    const sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
-    const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    scene.add(sphere);
+    // Create an object (cube) that will travel along the path
+    const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    scene.add(cube);
 
-    camera.position.set(0, 10, 10);
+    camera.position.set(0, 50, 50); // Adjusted camera position for better visibility
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     let t = 0;
@@ -56,9 +62,9 @@ const ThreeJSScene = ({ graph, csvData }) => {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Update the position of the sphere along the path
+      // Update the position of the cube along the path
       const point = curve.getPointAt(t % 1);
-      sphere.position.set(point.x, point.y, point.z);
+      cube.position.set(point.x, point.y, point.z);
       t += 0.001; // Adjust speed as needed
 
       controls.update();
