@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-const ThreeJSScene = ({ graph, csvData }) => {
+const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
   const mountRef = useRef(null);
 
   useEffect(() => {

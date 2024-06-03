@@ -164,7 +164,7 @@ const MyPlot = ({ onParsedData }) => {
 const GraphControls = ({ graph, csvData, updateGraph, removeGraph }) => {
   if (!csvData || csvData.length === 0) return null;
 
-  const { id, selectedXColumn, selectedYColumns, selectedZColumn, yColumnColors, scalingFactors, offsets, plotType, plotMode, is3D } = graph;
+  const { id, selectedXColumn, selectedYColumns, selectedZColumn, yColumnColors, scalingFactors, offsets, plotType, plotMode, is3D=false } = graph;
   const columns = Object.keys(csvData[0]);
 
   const handleXColumnChange = (event) => {
@@ -219,8 +219,10 @@ const handlePlotModeChange = (event) => {
 };
 
 const handlePlotDimensionChange = (event) => {
-  updateGraph(id, { ...graph, is3D: event.target.value === '3D' });
+  const is3DValue = event.target.value === '3D';
+  updateGraph(id, { ...graph, is3D: is3DValue });
 };
+
 
 return (
   <div className="mb-8 p-4 border border-gray-300 rounded bg-gray-700 text-white">
