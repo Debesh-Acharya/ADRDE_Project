@@ -106,12 +106,14 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
 
   return (
     <div>
-      <div ref={mountRef} style={{ width: '100%', height: '500px' }} />
+      { !simulationEnabled &&
+        <button onClick={handleSimulateNow}>Simulate Now</button>
+      }
       {simulationEnabled && (
         <div>
           <label>
             Simulation Speed:
-            <select value={simulationSpeed} onChange={(e) => setSimulationSpeed(parseFloat(e.target.value))}>
+            <select className="text-black "value={simulationSpeed} onChange={(e) => setSimulationSpeed(parseFloat(e.target.value))}>
               <option value={0.05}>0.05x</option>
               <option value={0.1}>0.1x</option>
               <option value={0.5}>0.5x</option>
@@ -123,46 +125,42 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
           </label>
         </div>
       )}
+      <div ref={mountRef} style={{ width: '100%', height: '500px' }} />
       {!simulationEnabled && (
         <div>
-          <button onClick={handleSimulateNow}>Simulate Now</button>
-          {simulationEnabled && (
-            <div>
-              <label>
-                X Column:
-                <select value={selectedXColumn} onChange={(e) => setSelectedXColumn(e.target.value)}>
-                  {Object.keys(csvData[0]).map((column) => (
-                    <option key={column} value={column}>
-                      {column}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Y Column:
-                <select value={selectedYColumn} onChange={(e) => setSelectedYColumn(e.target.value)}>
-                  {Object.keys(csvData[0]).map((column) => (
-                    <option key={column} value={column}>
-                      {column}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {graph.is3D && (
-                <label>
-                  Z Column:
-                  <select value={selectedZColumn} onChange={(e) => setSelectedZColumn(e.target.value)}>
-                    {Object.keys(csvData[0]).map((column) => (
-                      <option key={column} value={column}>
-                        {column}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <button onClick={handleSimulate}>Simulate</button>
-            </div>
+          <label>
+            X Column:
+            <select value={selectedXColumn} onChange={(e) => setSelectedXColumn(e.target.value)}>
+              {Object.keys(csvData[0]).map((column) => (
+                <option key={column} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Y Column:
+            <select value={selectedYColumn} onChange={(e) => setSelectedYColumn(e.target.value)}>
+              {Object.keys(csvData[0]).map((column) => (
+                <option key={column} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
+          </label>
+          {graph.is3D && (
+            <label>
+              Z Column:
+              <select value={selectedZColumn} onChange={(e) => setSelectedZColumn(e.target.value)}>
+                {Object.keys(csvData[0]).map((column) => (
+                  <option key={column} value={column}>
+                    {column}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
+          <button onClick={handleSimulate}>Simulate</button>
         </div>
       )}
     </div>
