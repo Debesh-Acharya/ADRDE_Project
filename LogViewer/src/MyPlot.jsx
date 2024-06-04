@@ -70,8 +70,8 @@ const MyPlot = ({ onParsedData }) => {
     <div className="flex flex-col items-start w-full h-full relative">
     <header className="w-full p-4 bg-gray-800 text-white flex items-center justify-center">
       <div className="flex items-center">
-        <img src="adrde_drdo.png" alt="Logo" className="h-11 mr-3" /> {/* Replace 'path_to_your_logo' with the actual path to your logo */}
-        <h1 className="text-2xl">ADRDE (Trial) Log Viewer</h1>
+        <img src="adrde_drdo.png" alt="Logo" className="h-11 mr-3 md:h-12 lg:h-10" /> {/* Replace 'path_to_your_logo' with the actual path to your logo */}
+        <h1 className="text-2xl md:text-2xl lg:text-3xl">ADRDE (Trial) Log Viewer</h1>
       </div>
 
       </header>

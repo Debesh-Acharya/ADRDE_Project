@@ -27,6 +27,12 @@ header {
   z-index: 30;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+footer{
+  padding: 0%;
+  width: 100%;
+  bottom: 0%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
+}
 .sidebar {
   background-color: #1f1f1f;
   color: #ffffff;
