@@ -1,9 +1,15 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
   const mountRef = useRef(null);
+  const [simulationSpeed, setSimulationSpeed] = useState(1);
+  const [simulationEnabled, setSimulationEnabled] = useState(false);
+  const [selectedXColumn, setSelectedXColumn] = useState(null);
+  const [selectedYColumn, setSelectedYColumn] = useState(null);
+  const [selectedZColumn, setSelectedZColumn] = useState(null);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -14,23 +20,20 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
 
-    // Adding orbit controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // Setting up the light
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(0, 10, 10);
     scene.add(light);
 
-    const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+    const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
-    // Extracting data points from the csvData
     const points = csvData.map((row) => ({
-      x: parseFloat(row[graph.selectedXColumn]),
-      y: parseFloat(row[graph.selectedYColumns[0]]),
-      z: graph.is3D ? parseFloat(row[graph.selectedZColumn]) : 0,
+      x: parseFloat(row[selectedXColumn || graph.selectedXColumn]),
+      y: parseFloat(row[selectedYColumn || graph.selectedYColumns[0]]),
+      z: graph.is3D ? parseFloat(row[selectedZColumn || graph.selectedZColumn]) : 0,
     }));
 
     if (points.length === 0) {
@@ -38,40 +41,46 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
       return;
     }
 
-    // Create a path from the data points using CatmullRomCurve3
     const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, p.z)));
 
-    // Draw path
     const pathPoints = curve.getPoints(1000);
     const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
     const pathMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
     const pathLine = new THREE.Line(pathGeometry, pathMaterial);
     scene.add(pathLine);
 
-    // Create an object (cube) that will travel along the path
-    const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    scene.add(cube);
+    const loader = new GLTFLoader();
+    loader.load('plane.glb', (gltf) => {
+      const plane = gltf.scene.children[0];
+      plane.scale.set(0.5, 0.5, 0.5); // Adjust scale as needed
+      plane.rotation.x = Math.PI / 4; // Rotate the model to be vertical
+      scene.add(plane);
 
-    camera.position.set(0, 50, 50); // Adjusted camera position for better visibility
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
+      // Calculate the bounding box of the curve
+      const bbox = new THREE.Box3().setFromPoints(pathPoints);
+      const center = bbox.getCenter(new THREE.Vector3());
 
-    let t = 0;
+      // Position the camera based on the center of the curve
+      camera.position.set(center.x, center.y + 50, center.z + 50);
+      camera.lookAt(center);
 
-    const animate = () => {
-      requestAnimationFrame(animate);
+      let t = 0;
 
-      // Update the position of the cube along the path
-      const point = curve.getPointAt(t % 1);
-      cube.position.set(point.x, point.y, point.z);
-      t += 0.001; // Adjust speed as needed
+      const animate = () => {
+        requestAnimationFrame(animate);
 
-      controls.update();
-      renderer.render(scene, camera);
-    };
+        if (simulationEnabled) {
+          const point = curve.getPointAt(t % 1);
+          plane.position.set(point.x, point.y, point.z);
+          t += 0.001 * simulationSpeed;
+        }
 
-    animate();
+        controls.update();
+        renderer.render(scene, camera);
+      };
+
+      animate();
+    });
 
     const handleResize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight;
@@ -85,9 +94,79 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
       window.removeEventListener('resize', handleResize);
       mount.removeChild(renderer.domElement);
     };
-  }, [csvData, graph]);
+  }, [csvData, graph, simulationEnabled, simulationSpeed, selectedXColumn, selectedYColumn, selectedZColumn]);
 
-  return <div ref={mountRef} style={{ width: '100%', height: '500px' }} />;
+  const handleSimulateNow = () => {
+    setSimulationEnabled(true);
+  };
+
+  const handleSimulate = () => {
+    // Start the simulation with the selected columns
+  };
+
+  return (
+    <div>
+      <div ref={mountRef} style={{ width: '100%', height: '500px' }} />
+      {simulationEnabled && (
+        <div>
+          <label>
+            Simulation Speed:
+            <select value={simulationSpeed} onChange={(e) => setSimulationSpeed(parseFloat(e.target.value))}>
+              <option value={0.05}>0.05x</option>
+              <option value={0.1}>0.1x</option>
+              <option value={0.5}>0.5x</option>
+              <option value={1}>1x</option>
+              <option value={5}>5x</option>
+              <option value={10}>10x</option>
+              <option value={50}>50x</option>
+            </select>
+          </label>
+        </div>
+      )}
+      {!simulationEnabled && (
+        <div>
+          <button onClick={handleSimulateNow}>Simulate Now</button>
+          {simulationEnabled && (
+            <div>
+              <label>
+                X Column:
+                <select value={selectedXColumn} onChange={(e) => setSelectedXColumn(e.target.value)}>
+                  {Object.keys(csvData[0]).map((column) => (
+                    <option key={column} value={column}>
+                      {column}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Y Column:
+                <select value={selectedYColumn} onChange={(e) => setSelectedYColumn(e.target.value)}>
+                  {Object.keys(csvData[0]).map((column) => (
+                    <option key={column} value={column}>
+                      {column}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {graph.is3D && (
+                <label>
+                  Z Column:
+                  <select value={selectedZColumn} onChange={(e) => setSelectedZColumn(e.target.value)}>
+                    {Object.keys(csvData[0]).map((column) => (
+                      <option key={column} value={column}>
+                        {column}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <button onClick={handleSimulate}>Simulate</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ThreeJSScene;
