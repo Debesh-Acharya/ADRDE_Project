@@ -1,12 +1,5 @@
 import React, { useState, useRef,useEffect } from 'react';
 import Plot from 'react-plotly.js';
-// import {
-//   parseCSV as parseCSVUtil,
-//   parseXLS as parseXLSUtil,
-//   parseJSON as parseJSONUtil,
-//   parseYAML as parseYAMLUtil,
-//   parseTXT as parseTXTUtil
-// } from './utils/fileParserUtils';
 import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
 import ThreeJSScene from './ThreeJSScene';
@@ -36,31 +29,6 @@ const MyPlot = ({ onParsedData }) => {
     const file = e.target.files[0];
     const extension = file.name.split('.').pop().toLowerCase();
     workerRef.current.postMessage({file,fileType:extension});
-  
-    // switch (extension) {
-    //   case 'csv':
-    //   case 'tsv':
-    //     parseCSVUtil(file, handleParsedData);
-    //     break;
-    //   case 'xls':
-    //   case 'xlsx':
-    //     import('xlsx').then((XLSX) => {
-    //       parseXLSUtil(file, XLSX, handleParsedData);
-    //     });
-    //     break;
-    //   case 'json':
-    //     parseJSONUtil(file, handleParsedData);
-    //     break;
-    //   case 'yml':
-    //   case 'yaml':
-    //     parseYAMLUtil(file, handleParsedData);
-    //     break;
-    //   case 'txt':
-    //     parseTXTUtil(file, handleParsedData);
-    //     break;
-    //   default:
-    //     console.error('Unsupported file format');
-    // }
   };
 
   const handleParsedData = (results) => {
@@ -101,7 +69,7 @@ const MyPlot = ({ onParsedData }) => {
   return (
     <div className="flex flex-col items-start w-full h-full relative">
       <header className="w-full p-4 bg-gray-800 text-white">
-        <h1 className="text-2xl">Log Viewer</h1>
+        <h1 className="text-2xl">ADRDE (Trial) Log Viewer</h1>
       </header>
       <CSSTransition
         nodeRef={nodeRef}
