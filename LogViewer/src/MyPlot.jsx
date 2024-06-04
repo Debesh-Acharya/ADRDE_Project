@@ -8,7 +8,7 @@ import './MyPlot.css';
 const MyPlot = ({ onParsedData }) => {
   const [csvData, setCsvData] = useState(null);
   const [graphs, setGraphs] = useState([]);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const nodeRef = useRef(null);  // Create a ref
   const workerRef = useRef(null);
 
@@ -68,8 +68,12 @@ const MyPlot = ({ onParsedData }) => {
 
   return (
     <div className="flex flex-col items-start w-full h-full relative">
-      <header className="w-full p-4 bg-gray-800 text-white">
+    <header className="w-full p-4 bg-gray-800 text-white flex items-center justify-center">
+      <div className="flex items-center">
+        <img src="adrde_drdo.png" alt="Logo" className="h-11 mr-3" /> {/* Replace 'path_to_your_logo' with the actual path to your logo */}
         <h1 className="text-2xl">ADRDE (Trial) Log Viewer</h1>
+      </div>
+
       </header>
       <CSSTransition
         nodeRef={nodeRef}
@@ -109,13 +113,20 @@ const MyPlot = ({ onParsedData }) => {
           ))}
         </div>
       </CSSTransition>
-      <div className={`flex-grow w-full h-full transition-all duration-300 mt-16 ${showControls ? 'ml-72' : 'ml-0'}`}>
+      <div className={`flex-grow w-full h-full transition-all duration-300 mt-16 ${showControls ? 'ml-72' : 'ml-0'}`} style={{
+          width: showControls ? `100%` : '77%',
+        }}>
         {graphs.map(graph => (
           <div key={graph.id}>
-            <PlotComponent graph={graph} csvData={csvData} />
-            <ThreeJSScene graph={graph} csvData={csvData} />
+            <PlotComponent graph={graph} csvData={csvData} isResponsive={showControls} />
+            <ThreeJSScene graph={graph} csvData={csvData}/>
           </div>
         ))}
+      </div>
+      <div className={`fixed bottom-0 left-0 w-full ${graphs.length > 0 ? 'absolute bottom-0 left-0' : 'fixed bottom-0 left-0'}`}>
+        <footer className="w-full p-4 bg-gray-800 text-white text-center ">
+          Designed & Developed by: SDD, ADRDE, AGRA
+        </footer>
       </div>
       <div className="fixed top-4 left-4 z-30">
         <button
@@ -126,6 +137,7 @@ const MyPlot = ({ onParsedData }) => {
         </button>
       </div>
     </div>
+    
   );
 };
 
@@ -386,7 +398,7 @@ const plotData = selectedYColumns.map((yColumn) => {
 
 const layout = {
   xaxis: { title: { text: selectedXColumn } },
-  yaxis: { title: { text: 'Values' } },
+  yaxis: { title: { text: selectedYColumns.join(', ')  } },
   autosize: true,
 };
 
@@ -397,6 +409,7 @@ return (
     style={{ width: '100%', height: '100%' }}
     responsive={true}
   />
+  
 );
 };
 
