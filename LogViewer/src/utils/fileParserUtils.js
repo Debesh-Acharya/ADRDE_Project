@@ -50,10 +50,13 @@ export const parseCSVContent = (content, handleParsedData) => {
       const data = results.data;
       const headerRowIndex = findHeaderRowIndex(data);
       const headers = cleanHeaders(data[headerRowIndex]);
+      const headerLength = headers.length;
       const parsedData = data.slice(headerRowIndex + 1).map(row => {
+        // Clean and pad or trim the row to match the header length
+        const cleanedRow = cleanAndPadRow(row, headerLength);
         const obj = {};
         headers.forEach((header, index) => {
-          obj[header] = row[index];
+          obj[header] = cleanedRow[index];
         });
         return obj;
       });
@@ -62,6 +65,36 @@ export const parseCSVContent = (content, handleParsedData) => {
     },
   });
 };
+
+const cleanAndPadRow = (row, length) => {
+  const cleanedRow = [];
+  let numericCount = 0;
+
+  // Clean and count the number of numeric data in the row
+  row.forEach(cell => {
+    const cleanedCell = cell.trim(); // Trim whitespace from each cell
+    if (!isNaN(cleanedCell) && cleanedCell !== '') {
+      // If the cell is numeric, increment the numeric count
+      numericCount++;
+    }
+    cleanedRow.push(cleanedCell);
+  });
+
+  // If the number of numeric data is less than the header length,
+  // pad the row with empty strings to match the header length
+  if (numericCount < length) {
+    cleanedRow.push(...new Array(length - numericCount).fill(''));
+  }
+
+  // If the number of numeric data is greater than the header length,
+  // trim the row to match the header length
+  if (numericCount > length) {
+    cleanedRow.splice(length);
+  }
+
+  return cleanedRow;
+};
+
 export const parseCSV = (file, handleParsedData) => {
   const reader = new FileReader();
   reader.onload = (e) => {
