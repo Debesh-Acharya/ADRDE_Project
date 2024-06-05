@@ -42,13 +42,22 @@ const findHeaderRowIndex = (data, threshold = 0.5) => {
 
 
 export const parseCSVContent = (content, handleParsedData) => {
+  let startLine = parseInt(prompt("Enter the start line number:", "1"),10);
+  if (isNaN(startLine)) {
+    startLine = 1; // Use 1 as the default start line if the input is not a number
+  }
+
   const delimiter = detectDelimiter(content);
   Papa.parse(content, {
     delimiter: delimiter,
     skipEmptyLines: true,
     complete: (results) => {
       const data = results.data;
-      const headerRowIndex = findHeaderRowIndex(data);
+      let headerRowIndex = findHeaderRowIndex(data);
+      if (startLine > 1) {
+        // Adjust the header row index based on the start line
+        headerRowIndex += startLine - 1;
+      }
       const headers = cleanHeaders(data[headerRowIndex]);
       const headerLength = headers.length;
       const parsedData = data.slice(headerRowIndex + 1).map(row => {
@@ -65,6 +74,7 @@ export const parseCSVContent = (content, handleParsedData) => {
     },
   });
 };
+
 
 const cleanAndPadRow = (row, length) => {
   const cleanedRow = [];

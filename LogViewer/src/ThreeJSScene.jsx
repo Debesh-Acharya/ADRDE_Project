@@ -7,9 +7,9 @@ const ThreeJSScene = ({ graph = { is3D: false }, csvData }) => {
   const mountRef = useRef(null);
   const [simulationSpeed, setSimulationSpeed] = useState(1);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
-  const [selectedXColumn, setSelectedXColumn] = useState(null);
-  const [selectedYColumn, setSelectedYColumn] = useState(null);
-  const [selectedZColumn, setSelectedZColumn] = useState(null);
+  const [selectedXColumn, setSelectedXColumn] = useState('');
+  const [selectedYColumn, setSelectedYColumn] = useState('');
+  const [selectedZColumn, setSelectedZColumn] = useState('');
 
   useEffect(() => {
     const mount = mountRef.current;

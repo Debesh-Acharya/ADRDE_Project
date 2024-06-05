@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import MyPlot from './MyPlot';
-// import WorldSimulationViewer from './WorldSimulationViewer'; // Ensure this path is correct
 
 const App = () => {
   const [flightData, setFlightData] = useState(null);

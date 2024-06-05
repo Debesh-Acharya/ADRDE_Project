@@ -50,10 +50,6 @@ const MyPlot = ({ onParsedData }) => {
         console.log("CSV data is empty or not available.");
         return;
     }
-    const columns = Object.keys(csvData[0]);
-    console.log("Columns:", columns);
-    console.log("Headers:", headers);
-    console.log("Selected Header Index:", selectedHeaderIndex);
 
     const newGraph = {
         id: graphs.length,
@@ -68,10 +64,18 @@ const MyPlot = ({ onParsedData }) => {
         is3D: false,
     };
 
-    console.log("New Graph:", newGraph);
 
     setGraphs([...graphs, newGraph]);
 };
+console.error = (message) => {
+  if (message.startsWith('Warning: A component is changing a controlled input')) {
+    // Suppress the warning
+    return;
+  }
+  // Log other errors
+  originalError(message);
+};
+
 
   const updateGraph = (id, updatedGraph) => {
     setGraphs(graphs.map(graph => graph.id === id ? updatedGraph : graph));
@@ -81,10 +85,8 @@ const MyPlot = ({ onParsedData }) => {
     setGraphs(graphs.filter(graph => graph.id !== id));
   };
   useEffect(() => {
-    console.log("Header row index:", headerRowIndex);
     // Update selectedHeaderIndex when headerRowIndex changes
     setSelectedHeaderIndex(Math.max(headerRowIndex - 1, 0));
-    console.log("Selected header index:", selectedHeaderIndex);
   }, [headerRowIndex]);
 
   return (
@@ -119,13 +121,13 @@ const MyPlot = ({ onParsedData }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-2 text-white">Select Header Row Index:</label>
+            {/* <label className="block mb-2 text-white">Select Header Row Index:</label>
             <input
               type="number"
               value={headerRowIndex}
               onChange={(e) => setHeaderRowIndex(parseInt(e.target.value))}
               className="w-full p-2"
-            />
+            /> */}
           </div>
           <div className="mb-4">
             <button onClick={addNewGraph} className="bg-dark-blue text-white p-2 rounded w-full">
@@ -444,4 +446,3 @@ return (
 };
 
 export default MyPlot;
-
