@@ -67,14 +67,14 @@ const MyPlot = ({ onParsedData }) => {
 
     setGraphs([...graphs, newGraph]);
 };
-console.error = (message) => {
-  if (message.startsWith('Warning: A component is changing a controlled input')) {
-    // Suppress the warning
-    return;
-  }
-  // Log other errors
-  originalError(message);
-};
+// console.error = (message) => {
+//   if (message.startsWith('Warning: A component is changing a controlled input')) {
+//     // Suppress the warning
+//     return;
+//   }
+//   // Log other errors
+//   originalError(message);
+// };
 
 
   const updateGraph = (id, updatedGraph) => {
