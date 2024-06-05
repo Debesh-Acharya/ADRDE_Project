@@ -4,11 +4,15 @@ import { getRandomColor } from './utils/plottingUtils';
 import { CSSTransition } from 'react-transition-group';
 import ThreeJSScene from './ThreeJSScene';
 import './MyPlot.css';
+import { parseCSV } from './utils/fileParserUtils';
 
 const MyPlot = ({ onParsedData }) => {
   const [csvData, setCsvData] = useState(null);
+  const [headers, setHeaders] = useState([]);
   const [graphs, setGraphs] = useState([]);
+  const [selectedHeaderIndex, setSelectedHeaderIndex] = useState(0); 
   const [showControls, setShowControls] = useState(true);
+  const [headerRowIndex, setHeaderRowIndex] = useState(0);
   const nodeRef = useRef(null);  // Create a ref
   const workerRef = useRef(null);
 
@@ -27,8 +31,7 @@ const MyPlot = ({ onParsedData }) => {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    const extension = file.name.split('.').pop().toLowerCase();
-    workerRef.current.postMessage({file,fileType:extension});
+    parseCSV(file, handleParsedData); // Use the parseCSV function to parse the uploaded CSV file
   };
 
   const handleParsedData = (results) => {
@@ -37,26 +40,37 @@ const MyPlot = ({ onParsedData }) => {
       return;
     }
     setCsvData(results.data);
+    setHeaders(results.headers);
     onParsedData(results.data);
   };
 
   const addNewGraph = () => {
-    if (!csvData || csvData.length === 0) return;
+    if (!csvData || csvData.length === 0) {
+        console.log("CSV data is empty or not available.");
+        return;
+    }
     const columns = Object.keys(csvData[0]);
+    console.log("Columns:", columns);
+    console.log("Headers:", headers);
+    console.log("Selected Header Index:", selectedHeaderIndex);
+
     const newGraph = {
-      id: graphs.length,
-      selectedXColumn: columns[0] || "NaN",
-      selectedYColumns: [columns[1] || "NaN"],
-      selectedZColumn: columns.length > 2 ? columns[2] : null,
-      yColumnColors: { [columns[1]]: getRandomColor() },
-      scalingFactors: { [columns[1]]: 1 },
-      offsets: { [columns[1]]: 0 },
-      plotType: 'scatter',
-      plotMode: 'lines+markers',
-      is3D: false,
+        id: graphs.length,
+        selectedXColumn: headers[selectedHeaderIndex],
+        selectedYColumns: [headers[selectedHeaderIndex + 1]],
+        selectedZColumn: headers.length > selectedHeaderIndex + 2 ? headers[selectedHeaderIndex + 2] : null,
+        yColumnColors: { [headers[selectedHeaderIndex + 1]]: getRandomColor() },
+        scalingFactors: { [headers[selectedHeaderIndex + 1]]: 1 },
+        offsets: { [headers[selectedHeaderIndex + 1]]: 0 },
+        plotType: 'scatter',
+        plotMode: 'lines+markers',
+        is3D: false,
     };
+
+    console.log("New Graph:", newGraph);
+
     setGraphs([...graphs, newGraph]);
-  };
+};
 
   const updateGraph = (id, updatedGraph) => {
     setGraphs(graphs.map(graph => graph.id === id ? updatedGraph : graph));
@@ -65,6 +79,12 @@ const MyPlot = ({ onParsedData }) => {
   const removeGraph = (id) => {
     setGraphs(graphs.filter(graph => graph.id !== id));
   };
+  useEffect(() => {
+    console.log("Header row index:", headerRowIndex);
+    // Update selectedHeaderIndex when headerRowIndex changes
+    setSelectedHeaderIndex(Math.max(headerRowIndex - 1, 0));
+    console.log("Selected header index:", selectedHeaderIndex);
+  }, [headerRowIndex]);
 
   return (
     <div className="flex flex-col items-start w-full h-full relative">
@@ -95,6 +115,15 @@ const MyPlot = ({ onParsedData }) => {
               type="file"
               onChange={handleFileUpload}
               className="w-full p-2 mb-2"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-white">Select Header Row Index:</label>
+            <input
+              type="number"
+              value={headerRowIndex}
+              onChange={(e) => setHeaderRowIndex(parseInt(e.target.value))}
+              className="w-full p-2"
             />
           </div>
           <div className="mb-4">

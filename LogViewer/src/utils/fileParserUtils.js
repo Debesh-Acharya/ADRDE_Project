@@ -2,16 +2,21 @@ import Papa from 'papaparse';
 import jsyaml from 'js-yaml';
 
 const cleanHeaders = (headers) => {
-  return headers.map(header => header.trim().replace(/,+/g, ''));
+  // Remove empty headers and trim whitespace from each header
+  return headers.filter(header => header.trim() !== '');
 };
 
+
 const detectDelimiter = (input) => {
-  const delimiters = [',', '\t', ';', '|', ' '];
+  const delimiters = [',', '\t', ';', '|', ' ', ':', '/', '\\', '_', '-', '+', '*', '^', '&', '$', '#', '@', '!', '?', '\n', '\r', '"', "'", '<>', '{}', '[]', '%'];
   let bestDelimiter = ',';
   let maxCount = 0;
 
   delimiters.forEach(delimiter => {
-    const count = input.split(delimiter).length;
+    // Split the input using the delimiter
+    const parts = input.split(delimiter);
+    // Check if the result contains any non-empty parts
+    const count = parts.some(part => part.trim() !== '') ? parts.length : 0;
     if (count > maxCount) {
       maxCount = count;
       bestDelimiter = delimiter;
@@ -23,19 +28,20 @@ const detectDelimiter = (input) => {
 
 const findHeaderRowIndex = (data, threshold = 0.5) => {
   const isNonNumeric = (cell) => isNaN(cell) || cell.trim() === "";
-  
+
   for (let i = 0; i < data.length; i++) {
     let nonNumericCount = data[i].reduce((count, cell) => count + isNonNumeric(cell), 0);
     let nonNumericPercentage = nonNumericCount / data[i].length;
-    
-    if (nonNumericPercentage >= threshold) {
+
+    if (nonNumericPercentage >= threshold && i >= 5) { // Adjusted to start searching from the 6th row
       return i;
     }
   }
-  return 0;
+  return 0; // If no suitable header row is found, return 0
 };
 
-const parseCSVContent = (content, handleParsedData) => {
+
+export const parseCSVContent = (content, handleParsedData) => {
   const delimiter = detectDelimiter(content);
   Papa.parse(content, {
     delimiter: delimiter,
@@ -44,7 +50,6 @@ const parseCSVContent = (content, handleParsedData) => {
       const data = results.data;
       const headerRowIndex = findHeaderRowIndex(data);
       const headers = cleanHeaders(data[headerRowIndex]);
-
       const parsedData = data.slice(headerRowIndex + 1).map(row => {
         const obj = {};
         headers.forEach((header, index) => {
@@ -53,7 +58,7 @@ const parseCSVContent = (content, handleParsedData) => {
         return obj;
       });
 
-      handleParsedData({ data: parsedData, meta: { fields: headers } });
+      handleParsedData({ data: parsedData, headers: headers }); // Return both data and headers
     },
   });
 };
