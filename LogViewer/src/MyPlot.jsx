@@ -32,6 +32,7 @@ const MyPlot = ({ onParsedData }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     parseCSV(file, handleParsedData); // Use the parseCSV function to parse the uploaded CSV file
+    setGraphs([]);
   };
 
   const handleParsedData = (results) => {
