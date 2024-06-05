@@ -8,7 +8,7 @@ const cleanHeaders = (headers) => {
 
 
 const detectDelimiter = (input) => {
-  const delimiters = [',', '\t', ';', '|', ' ', ':', '/', '\\', '_', '-', '+', '*', '^', '&', '$', '#', '@', '!', '?', '\n', '\r', '"', "'", '<>', '{}', '[]', '%'];
+  const delimiters = [',', '\t', ';', '|', '  ', ':', '/', '\\', '_', '-', '+', '*', '^', '&', '$', '#', '@', '!', '?', '\n', '\r', '"', "'", '<>', '{}', '[]', '%'];
   let bestDelimiter = ',';
   let maxCount = 0;
 
@@ -33,7 +33,7 @@ const findHeaderRowIndex = (data, threshold = 0.5) => {
     let nonNumericCount = data[i].reduce((count, cell) => count + isNonNumeric(cell), 0);
     let nonNumericPercentage = nonNumericCount / data[i].length;
 
-    if (nonNumericPercentage >= threshold && i >= 5) { // Adjusted to start searching from the 6th row
+    if (nonNumericPercentage >= threshold && i >= 0) { // Adjusted to start searching from the 6th row
       return i;
     }
   }
@@ -62,7 +62,6 @@ export const parseCSVContent = (content, handleParsedData) => {
     },
   });
 };
-
 export const parseCSV = (file, handleParsedData) => {
   const reader = new FileReader();
   reader.onload = (e) => {
