@@ -94,7 +94,7 @@ const MyPlot = ({ onParsedData }) => {
     <header className="w-full p-4 bg-gray-800 text-white flex items-center justify-center">
       <div className="flex items-center">
         <img src="adrde_drdo.png" alt="Logo" className="h-11 mr-3 md:h-12 lg:h-10" /> {/* Replace 'path_to_your_logo' with the actual path to your logo */}
-        <h1 className="text-2xl md:text-2xl lg:text-3xl">ADRDE (Trial) Log Viewer</h1>
+        <h1 className="text-2xl md:text-2xl lg:text-3xl">ADRDE Trial Log Viewer</h1>
       </div>
 
       </header>
@@ -117,6 +117,7 @@ const MyPlot = ({ onParsedData }) => {
             <input
               type="file"
               onChange={handleFileUpload}
+              accept=".csv,.json,.yaml,.yml,.txt,.tsv"
               className="w-full p-2 mb-2"
             />
           </div>
@@ -151,9 +152,14 @@ const MyPlot = ({ onParsedData }) => {
         {graphs.map(graph => (
           <div key={graph.id}>
             <PlotComponent graph={graph} csvData={csvData} isResponsive={showControls} />
-            <ThreeJSScene graph={graph} csvData={csvData}/>
+            
           </div>
         ))}
+        {graphs.length > 0 && (
+          <div className="w-full">
+            <ThreeJSScene graph={graphs[0]} csvData={csvData} />
+          </div>
+        )}
       </div>
       <div className={`fixed bottom-0 left-0 w-full ${graphs.length > 0 ? 'absolute bottom-0 left-0' : 'fixed bottom-0 left-0'}`}>
         <footer className="w-full p-4 bg-gray-800 text-white text-center ">
