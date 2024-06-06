@@ -67,16 +67,6 @@ const MyPlot = ({ onParsedData }) => {
 
     setGraphs([...graphs, newGraph]);
 };
-// console.error = (message) => {
-//   if (message.startsWith('Warning: A component is changing a controlled input')) {
-//     // Suppress the warning
-//     return;
-//   }
-//   // Log other errors
-//   originalError(message);
-// };
-
-
   const updateGraph = (id, updatedGraph) => {
     setGraphs(graphs.map(graph => graph.id === id ? updatedGraph : graph));
   };
@@ -113,22 +103,13 @@ const MyPlot = ({ onParsedData }) => {
             ×
           </button>
           <div className="mb-4">
-            <label className="block mb-2 text-white">Upload File:</label>
+            <label className="block mb-2 text-white">Upload File:(*.csv,*.tsv,*.json,*.txt,*.yml,*.yaml)</label>
             <input
               type="file"
               onChange={handleFileUpload}
               accept=".csv,.json,.yaml,.yml,.txt,.tsv"
               className="w-full p-2 mb-2"
             />
-          </div>
-          <div className="mb-4">
-            {/* <label className="block mb-2 text-white">Select Header Row Index:</label>
-            <input
-              type="number"
-              value={headerRowIndex}
-              onChange={(e) => setHeaderRowIndex(parseInt(e.target.value))}
-              className="w-full p-2"
-            /> */}
           </div>
           <div className="mb-4">
             <button onClick={addNewGraph} className="bg-dark-blue text-white p-2 rounded w-full">
@@ -148,7 +129,7 @@ const MyPlot = ({ onParsedData }) => {
       </CSSTransition>
       <div className={`flex-grow w-full h-full transition-all duration-300 mt-16 ${showControls ? 'ml-72' : 'ml-0'}`} style={{
           width: showControls ? `100%` : '77%',
-        }}>
+        } }>
         {graphs.map(graph => (
           <div key={graph.id}>
             <PlotComponent graph={graph} csvData={csvData} isResponsive={showControls} />
