@@ -15,6 +15,7 @@
     "axios": "^1.6.8",
     "cesium": "^1.117.0",
     "csv-parser": "^3.0.0",
+    "framer-motion": "^12.23.6",
     "js-yaml": "^4.1.0",
     "papaparse": "^5.4.1",
     "plotly.js": "^2.32.0",
