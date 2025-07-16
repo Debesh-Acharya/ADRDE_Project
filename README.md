@@ -1,8 +1,7 @@
 # ADRDE Trial Log Viewer
 
-A sophisticated web application for visualizing and analyzing flight trial data developed for the Armament Research and Development Establishment (ADRDE) of DRDO. This application provides comprehensive tools for data plotting, 3D flight simulation, and real-time telemetry visualization.
+A sophisticated web application for visualizing and analyzing flight trial data developed for ADRDE, DRDO. This application provides comprehensive tools for data plotting, 3D flight simulation, and real-time telemetry visualization.
 
-![ADRDE Logo](LogViewer/public/adrde_drdo.png)
 
 ## 🚀 Features
 
@@ -163,11 +162,3 @@ This project is developed for ADRDE (Armament Research and Development Establish
 - **Cesium** for 3D geospatial visualization
 - **Plotly** for interactive plotting capabilities
 - **Three.js** community for 3D graphics support
-
-## 📞 Support
-
-For technical support or questions about this application, please contact the development team or refer to the project documentation.
-
----
-
-**Developed for ADRDE, DRDO** | **Version 1.0** | **2025**
